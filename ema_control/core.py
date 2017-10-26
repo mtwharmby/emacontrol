@@ -32,9 +32,12 @@ class RobotGetSample(Robot):
         self.status = "Picking sample"
 
     def mount_sample(self):
-        self.next_state(RobotMovingSample)
+        self.next_state(RobotMoveSample)
 
-class RobotMovingSample(Robot):
+    def unmount_sample(self):
+        self.next_state(RobotMoveSample)
+
+class RobotMoveSample(Robot):
 
     def do_state_change(self):
         self.status = "Moving sample"
@@ -62,12 +65,4 @@ class RobotParked(Robot):
         self.status = "Parked"
 
     def unmount_sample(self):
-        self.next_state(RobotRecover)
-
-class RobotRecover(Robot):
-
-    def do_state_change(self):
-        self.status = "Recovering sample"
-
-    def unmount_sample(self):
-        self.next_state(RobotMovingSample)
+        self.next_state(RobotGetSample)
