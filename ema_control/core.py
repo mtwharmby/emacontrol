@@ -1,10 +1,10 @@
 class Robot:
 
     def __init__(self):
-        self.next_state(RobotReady)
         self.status=None
-        self.has_sample = None
-        self.sample_mounted = None
+        self.next_state(RobotReady)
+        self.has_sample = False
+        self.sample_mounted = False
 
     def next_state(self, state):
         self.__class__ = state
@@ -35,9 +35,12 @@ class RobotGetSample(Robot):
 
     def mount_sample(self):
         self.next_state(RobotMoveSample)
+        self.has_sample = True
 
     def unmount_sample(self):
         self.next_state(RobotMoveSample)
+        self.has_sample = True
+        self.sample_mounted = False
 
 class RobotMoveSample(Robot):
 
@@ -46,9 +49,13 @@ class RobotMoveSample(Robot):
 
     def mount_sample(self):
         self.next_state(RobotParking)
+        self.has_sample = False
+        self.sample_mounted = True
 
     def unmount_sample(self):
         self.next_state(RobotParking)
+        self.has_sample = False
+        self.sample_mounted = False
 
 class RobotParking(Robot):
 
