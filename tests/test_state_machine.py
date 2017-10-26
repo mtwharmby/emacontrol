@@ -48,7 +48,7 @@ class TestStateMachine:
         """
 
         #Set the initial state to Parked
-        self.robot.next_state(RobotParked)
+        self.robot._next_state(RobotParked)
 
         self.robot.unmount_sample() #User trigger
         assert_equal(self.robot.status, "Picking sample")

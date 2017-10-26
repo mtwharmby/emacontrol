@@ -2,15 +2,15 @@ class Robot:
 
     def __init__(self):
         self.status=None
-        self.next_state(RobotReady)
+        self._next_state(RobotReady)
         self.has_sample = False
         self.sample_mounted = False
 
-    def next_state(self, state):
+    def _next_state(self, state):
         self.__class__ = state
-        self.do_state_change()
+        self._do_state_change()
 
-    def do_state_change(self):
+    def _do_state_change(self):
         raise NotImplementedError("No state change operation defined")
 
     def mount_sample(self):
@@ -22,56 +22,56 @@ class Robot:
 
 class RobotReady(Robot):
 
-    def do_state_change(self):
+    def _do_state_change(self):
         self.status = "Ready"
 
     def mount_sample(self):
-        self.next_state(RobotGetSample)
+        self._next_state(RobotGetSample)
 
 class RobotGetSample(Robot):
 
-    def do_state_change(self):
+    def _do_state_change(self):
         self.status = "Picking sample"
 
     def mount_sample(self):
-        self.next_state(RobotMoveSample)
+        self._next_state(RobotMoveSample)
         self.has_sample = True
 
     def unmount_sample(self):
-        self.next_state(RobotMoveSample)
+        self._next_state(RobotMoveSample)
         self.has_sample = True
         self.sample_mounted = False
 
 class RobotMoveSample(Robot):
 
-    def do_state_change(self):
+    def _do_state_change(self):
         self.status = "Moving sample"
 
     def mount_sample(self):
-        self.next_state(RobotParking)
+        self._next_state(RobotParking)
         self.has_sample = False
         self.sample_mounted = True
 
     def unmount_sample(self):
-        self.next_state(RobotParking)
+        self._next_state(RobotParking)
         self.has_sample = False
         self.sample_mounted = False
 
 class RobotParking(Robot):
 
-    def do_state_change(self):
+    def _do_state_change(self):
         self.status = "Parking"
 
     def mount_sample(self):
-        self.next_state(RobotParked)
+        self._next_state(RobotParked)
 
     def unmount_sample(self):
-        self.next_state(RobotReady)
+        self._next_state(RobotReady)
 
 class RobotParked(Robot):
 
-    def do_state_change(self):
+    def _do_state_change(self):
         self.status = "Parked"
 
     def unmount_sample(self):
-        self.next_state(RobotGetSample)
+        self._next_state(RobotGetSample)
