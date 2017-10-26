@@ -2,13 +2,15 @@ class Robot:
 
     def __init__(self):
         self.next_state(RobotReady)
+        self.status=None
+        self.has_sample = None
+        self.sample_mounted = None
 
     def next_state(self, state):
         self.__class__ = state
         self.do_state_change()
 
     def do_state_change(self):
-        self.status=None
         raise NotImplementedError("No state change operation defined")
 
     def mount_sample(self):
