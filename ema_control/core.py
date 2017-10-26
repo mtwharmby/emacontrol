@@ -1,7 +1,7 @@
 class Robot:
 
     def __init__(self):
-        self.status=None
+        self.status = None
         self._next_state(RobotReady)
         self.has_sample = False
         self.sample_mounted = False
@@ -28,6 +28,7 @@ class RobotReady(Robot):
     def mount_sample(self):
         self._next_state(RobotGetSample)
 
+
 class RobotGetSample(Robot):
 
     def _do_state_change(self):
@@ -41,6 +42,7 @@ class RobotGetSample(Robot):
         self._next_state(RobotMoveSample)
         self.has_sample = True
         self.sample_mounted = False
+
 
 class RobotMoveSample(Robot):
 
@@ -57,6 +59,7 @@ class RobotMoveSample(Robot):
         self.has_sample = False
         self.sample_mounted = False
 
+
 class RobotParking(Robot):
 
     def _do_state_change(self):
@@ -67,6 +70,7 @@ class RobotParking(Robot):
 
     def unmount_sample(self):
         self._next_state(RobotReady)
+
 
 class RobotParked(Robot):
 

@@ -1,4 +1,4 @@
-from ema_control.core import Robot, RobotParked
+from ema_control.core import Robot, RobotParked, UserCommands
 
 from nose.tools import assert_equal
 from nose.tools import assert_false
@@ -22,22 +22,22 @@ class TestStateMachine:
         Another call to mount_sample should throw an error
         """
 
-        self.robot.mount_sample() #User trigger
+        self.robot.mount_sample()  # User trigger
         assert_equal(self.robot.status, "Picking sample")
-        self.robot.mount_sample() #H/W trigger
+        self.robot.mount_sample()  # H/W trigger
         assert_equal(self.robot.status, "Moving sample")
-        #Has sample = true
-        self.robot.mount_sample() #H/W trigger
+        # Has sample = true
+        self.robot.mount_sample()  # H/W trigger
         assert_equal(self.robot.status, "Parking")
-        #has_sample = false
-        #sample_mounted = true
-        self.robot.mount_sample() #H/W trigger
+        # has_sample = false
+        # sample_mounted = true
+        self.robot.mount_sample()  # H/W trigger
         assert_equal(self.robot.status, "Parked")
 
         try:
             self.robot.mount_sample()
             assert False, 'Should not be possible to call mount_sample in parked state'
-        except(NotImplementedError):
+        except NotImplementedError:
             pass
 
     def test_unmount_sample_transitions(self):
@@ -47,22 +47,22 @@ class TestStateMachine:
         Another call to unmount_sample should throw an error
         """
 
-        #Set the initial state to Parked
+        # Set the initial state to Parked
         self.robot._next_state(RobotParked)
 
-        self.robot.unmount_sample() #User trigger
+        self.robot.unmount_sample()  # User trigger
         assert_equal(self.robot.status, "Picking sample")
-        self.robot.unmount_sample() #H/W trigger
+        self.robot.unmount_sample()  # H/W trigger
         assert_equal(self.robot.status, "Moving sample")
-        self.robot.unmount_sample() #H/W trigger
+        self.robot.unmount_sample()  # H/W trigger
         assert_equal(self.robot.status, "Parking")
-        self.robot.unmount_sample() #H/W trigger
+        self.robot.unmount_sample()  # H/W trigger
         assert_equal(self.robot.status, "Ready")
 
         try:
             self.robot.unmount_sample()
             assert False, 'Should not be possible to call unmount_sample in ready state'
-        except(NotImplementedError):
+        except NotImplementedError:
             pass
 
     def test_sample_location_info(self):
@@ -81,46 +81,55 @@ class TestStateMachine:
         Parking - has_sample = 0; mounted_sample = 0
         """
 
-        #Ready
+        # Ready
         assert_false(self.robot.has_sample)
         assert_false(self.robot.sample_mounted)
+        assert_equal(self.robot.command, UserCommands.NONE)
 
-        #Get (mount)
+        # Get (mount)
         self.robot.mount_sample()
         assert_false(self.robot.has_sample)
         assert_false(self.robot.sample_mounted)
+        assert_equal(self.robot.command, UserCommands.MOUNT_SAMPLE)
 
-        #Moving
+        # Moving
         self.robot.mount_sample()
         assert_true(self.robot.has_sample)
         assert_false(self.robot.sample_mounted)
+        assert_equal(self.robot.command, UserCommands.MOUNT_SAMPLE)
 
-        #Parking (mount)
+        # Parking (mount)
         self.robot.mount_sample()
         assert_false(self.robot.has_sample)
         assert_true(self.robot.sample_mounted)
+        assert_equal(self.robot.command, UserCommands.MOUNT_SAMPLE)
 
-        #Parked
+        # Parked
         self.robot.mount_sample()
         assert_false(self.robot.has_sample)
         assert_true(self.robot.sample_mounted)
+        assert_equal(self.robot.command, UserCommands.NONE)
 
-        #Get (unmount)
+        # Get (unmount)
         self.robot.unmount_sample()
         assert_false(self.robot.has_sample)
         assert_true(self.robot.sample_mounted)
+        assert_equal(self.robot.command, UserCommands.UNMOUNT_SAMPLE)
 
-        #Moving
+        # Moving
         self.robot.unmount_sample()
         assert_true(self.robot.has_sample)
         assert_false(self.robot.sample_mounted)
+        assert_equal(self.robot.command, UserCommands.UNMOUNT_SAMPLE)
 
-        #Parking (mount)
+        # Parking (mount)
         self.robot.unmount_sample()
         assert_false(self.robot.has_sample)
         assert_false(self.robot.sample_mounted)
+        assert_equal(self.robot.command, UserCommands.UNMOUNT_SAMPLE)
 
-        #Ready
+        # Ready
         self.robot.unmount_sample()
         assert_false(self.robot.has_sample)
         assert_false(self.robot.sample_mounted)
+        assert_equal(self.robot.command, UserCommands.NONE)
