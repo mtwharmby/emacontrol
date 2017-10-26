@@ -13,13 +13,13 @@ class TestStateMachine:
 
     def test_mount_sample_transitions(self):
         '''Mount sample should have the following series of transitions:
-        Ready -> Picking sample -> Mounting sample -> Parking -> Parked
+        Ready -> Picking sample -> Moving sample -> Parking -> Parked
         Another call to mount_sample should throw an error'''
 
         self.robot.mount_sample() #User trigger
         assert_equal(self.robot.status, "Picking sample")
         self.robot.mount_sample() #H/W trigger
-        assert_equal(self.robot.status, "Mounting sample")
+        assert_equal(self.robot.status, "Moving sample")
         #Has sample = true
         self.robot.mount_sample() #H/W trigger
         assert_equal(self.robot.status, "Parking")
@@ -30,7 +30,7 @@ class TestStateMachine:
 
     def test_unmount_sample_transitions(self):
         '''Unmount sample should have the following transitions:
-        Parked -> Recovering sample -> Unmounting sample -> Parking -> Ready
+        Parked -> Recovering sample -> Moving sample -> Parking -> Ready
         Another call to unmount_sample should throw an error'''
 
         #Set the initial state to Parked
@@ -39,7 +39,7 @@ class TestStateMachine:
         self.robot.unmount_sample() #User trigger
         assert_equal(self.robot.status, "Recovering sample")
         self.robot.unmount_sample() #H/W trigger
-        assert_equal(self.robot.status, "Unmounting sample")
+        assert_equal(self.robot.status, "Moving sample")
         self.robot.unmount_sample() #H/W trigger
         assert_equal(self.robot.status, "Parking")
         self.robot.unmount_sample() #H/W trigger
