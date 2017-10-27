@@ -11,12 +11,17 @@ class TestStateMachine:
 
     def test_initialise(self):
         """
-        Robot should start in the READY state
+        Tests robot should initialises in the READY state with default variables
         """
         assert_equal(self.robot.status, "Ready")
+        assert_false(self.robot.has_sample)
+        assert_false(self.robot.sample_mounted)
+        assert_equal(self.robot.command, UserCommands.NONE)
 
     def test_mount_sample_transitions(self):
         """
+        Test transitions for the mount sample procedure
+
         Mount sample should have the following series of transitions:
         Ready -> Picking sample -> Moving sample -> Parking -> Parked
         Another call to mount_sample should throw an error
@@ -27,13 +32,13 @@ class TestStateMachine:
 
         self.robot.run()  # User trigger
         assert_equal(self.robot.status, "Picking sample")
+
         self.robot.run()  # H/W trigger
         assert_equal(self.robot.status, "Moving sample")
-        # Has sample = true
+
         self.robot.run()  # H/W trigger
         assert_equal(self.robot.status, "Parking")
-        # has_sample = false
-        # sample_mounted = true
+
         self.robot.run()  # H/W trigger
         assert_equal(self.robot.status, "Parked")
 
@@ -45,6 +50,8 @@ class TestStateMachine:
 
     def test_unmount_sample_transitions(self):
         """
+        Test transitions for the unmount sample procedure
+
         Unmount sample should have the following transitions:
         Parked -> Recovering sample -> Moving sample -> Parking -> Ready
         Another call to unmount_sample should throw an error
@@ -71,18 +78,20 @@ class TestStateMachine:
 
     def test_sample_location_info(self):
         """
+        Tests for changes of has_sample, sample_mounted and command variables
+        
         Invariant:
-        Ready - has_sample = 0; mounted_sample = 0
-        Parked - has_sample = 0; mounted_sample = 1
-        Moving - has_sample = 1; mounted_sample = 0
+        Ready - has_sample = 0; sample_mounted = 0
+        Parked - has_sample = 0; sample_mounted = 1
+        Moving - has_sample = 1; sample_mounted = 0
 
         Mount procedure:
-        Get - has_sample = 0; mounted_sample = 0
-        Parking - has_sample = 0; mounted_sample = 1
+        Get - has_sample = 0; sample_mounted = 0
+        Parking - has_sample = 0; sample_mounted = 1
 
         Unmount procedure:
-        Get - has_sample = 0; mounted_sample = 1
-        Parking - has_sample = 0; mounted_sample = 0
+        Get - has_sample = 0; sample_mounted = 1
+        Parking - has_sample = 0; sample_mounted = 0
         """
 
         # Ready
