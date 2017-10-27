@@ -1,4 +1,6 @@
-from ema_control.core import Robot, RobotParked, UserCommands
+from ema_control.core import Robot
+from ema_control.core import RobotParked
+from ema_control.core import UserCommands
 
 from nose.tools import assert_equal
 from nose.tools import assert_false
@@ -14,8 +16,8 @@ class TestStateMachine:
         Tests robot should initialises in the READY state with default variables
         """
         assert_equal(self.robot.status, "Ready")
-        assert_false(self.robot.has_sample)
-        assert_false(self.robot.sample_mounted)
+        assert_false(self.robot._has_sample)
+        assert_false(self.robot._sample_mounted)
         assert_equal(self.robot.command, UserCommands.NONE)
 
     def test_mount_sample_transitions(self):
@@ -78,25 +80,25 @@ class TestStateMachine:
 
     def test_sample_location_info(self):
         """
-        Tests for changes of has_sample, sample_mounted and command variables
+        Tests for changes of has_sample, _sample_mounted and command variables
         
         Invariant:
-        Ready - has_sample = 0; sample_mounted = 0
-        Parked - has_sample = 0; sample_mounted = 1
-        Moving - has_sample = 1; sample_mounted = 0
+        Ready - _has_sample = 0; _sample_mounted = 0
+        Parked - _has_sample = 0; _sample_mounted = 1
+        Moving - _has_sample = 1; _sample_mounted = 0
 
         Mount procedure:
-        Get - has_sample = 0; sample_mounted = 0
-        Parking - has_sample = 0; sample_mounted = 1
+        Get - _has_sample = 0; _sample_mounted = 0
+        Parking - _has_sample = 0; _sample_mounted = 1
 
         Unmount procedure:
-        Get - has_sample = 0; sample_mounted = 1
-        Parking - has_sample = 0; sample_mounted = 0
+        Get - _has_sample = 0; _sample_mounted = 1
+        Parking - _has_sample = 0; _sample_mounted = 0
         """
 
         # Ready
-        assert_false(self.robot.has_sample)
-        assert_false(self.robot.sample_mounted)
+        assert_false(self.robot._has_sample)
+        assert_false(self.robot._sample_mounted)
         assert_equal(self.robot.command, UserCommands.NONE)
 
         #We're going to simulate the mounting procedure:
@@ -104,26 +106,26 @@ class TestStateMachine:
 
         # Get (mount)
         self.robot.run()
-        assert_false(self.robot.has_sample)
-        assert_false(self.robot.sample_mounted)
+        assert_false(self.robot._has_sample)
+        assert_false(self.robot._sample_mounted)
         assert_equal(self.robot.command, UserCommands.MOUNT_SAMPLE)
 
         # Moving
         self.robot.run()
-        assert_true(self.robot.has_sample)
-        assert_false(self.robot.sample_mounted)
+        assert_true(self.robot._has_sample)
+        assert_false(self.robot._sample_mounted)
         assert_equal(self.robot.command, UserCommands.MOUNT_SAMPLE)
 
         # Parking (mount)
         self.robot.run()
-        assert_false(self.robot.has_sample)
-        assert_true(self.robot.sample_mounted)
+        assert_false(self.robot._has_sample)
+        assert_true(self.robot._sample_mounted)
         assert_equal(self.robot.command, UserCommands.MOUNT_SAMPLE)
 
         # Parked
         self.robot.run()
-        assert_false(self.robot.has_sample)
-        assert_true(self.robot.sample_mounted)
+        assert_false(self.robot._has_sample)
+        assert_true(self.robot._sample_mounted)
         assert_equal(self.robot.command, UserCommands.NONE)
 
         #Now we're going to simulate the unmounting procedure:
@@ -131,24 +133,24 @@ class TestStateMachine:
 
         # Get (unmount)
         self.robot.run()
-        assert_false(self.robot.has_sample)
-        assert_true(self.robot.sample_mounted)
+        assert_false(self.robot._has_sample)
+        assert_true(self.robot._sample_mounted)
         assert_equal(self.robot.command, UserCommands.UNMOUNT_SAMPLE)
 
         # Moving
         self.robot.run()
-        assert_true(self.robot.has_sample)
-        assert_false(self.robot.sample_mounted)
+        assert_true(self.robot._has_sample)
+        assert_false(self.robot._sample_mounted)
         assert_equal(self.robot.command, UserCommands.UNMOUNT_SAMPLE)
 
         # Parking (mount)
         self.robot.run()
-        assert_false(self.robot.has_sample)
-        assert_false(self.robot.sample_mounted)
+        assert_false(self.robot._has_sample)
+        assert_false(self.robot._sample_mounted)
         assert_equal(self.robot.command, UserCommands.UNMOUNT_SAMPLE)
 
         # Ready
         self.robot.run()
-        assert_false(self.robot.has_sample)
-        assert_false(self.robot.sample_mounted)
+        assert_false(self.robot._has_sample)
+        assert_false(self.robot._sample_mounted)
         assert_equal(self.robot.command, UserCommands.NONE)
