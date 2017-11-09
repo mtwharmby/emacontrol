@@ -1,6 +1,6 @@
-from ema_control.core import Robot
-from ema_control.core import RobotParked
-from ema_control.core import UserCommands
+from emacontrol.core import Robot
+from emacontrol.core import RobotParked
+from emacontrol.core import UserCommands
 
 from nose.tools import assert_equal
 from nose.tools import assert_false
