@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/ema-control.git.iml" filepath="$PROJECT_DIR$/ema-control.git.iml" />
+      <module fileurl="file://$PROJECT_DIR$/emacontrol.git.iml" filepath="$PROJECT_DIR$/emacontrol.git.iml" />
     </modules>
   </component>
 </project>
