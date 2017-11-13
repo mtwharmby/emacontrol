@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Programs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.staubli.com/robotics/VAL3/Program/2">
+  <Program name="sendStatus">
+    <Code><![CDATA[begin
+  for stringLen=0 to 15
+    message2ASCII[stringLen]=asc(mid(message,1,stringLen),0)
+  endFor
+  sioSet(sioASCII,message2ASCII)
+  delay(1)
+end]]></Code>
+  </Program>
+</Programs>
