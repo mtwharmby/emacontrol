@@ -1,5 +1,5 @@
 import mock
-from emacontrol.comms import RobotSocket, CommunicationException
+from emacontrol.comms import RobotSocket, EmaCommunicationException
 
 class TestRobotSocket:
     def setUp(self):
@@ -46,8 +46,22 @@ class TestRobotSocket:
             r_sock = RobotSocket("192.168.58.38", 10004)
             try:
                 r_sock.send_cmd("reply", await="correct", timeout=3)
-            except CommunicationException:
+            except EmaCommunicationException:
                 pass #Expected
 
         r_sock.socket.send.assert_called_with("reply")
+        r_sock.socket.recv.assert_called()
+
+    def test_send_config(self):
+        """
+        Tests sending a command which should be followed by additional
+        configuration data for the VAL3 layer
+        """
+        with mock.patch('socket.socket') as mock_socket:
+            mock_socket.return_value.recv.side_effect = ["setXaxis:waiting","setXaxis:done"]
+
+            r_sock = RobotSocket("192.168.58.38", 10004)
+            r_sock.send_config("defx", "setXaxis:waiting", 42, "setXaxis:done", timeout=3)
+
+        r_sock.socket.send.call_args_list = ["defx", "42"]
         r_sock.socket.recv.assert_called()
