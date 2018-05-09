@@ -1,5 +1,8 @@
 from enum import Enum
 
+from emacontrol.comms import RobotSocket
+
+
 class Robot:
     def __init__(self):
         """
@@ -12,6 +15,9 @@ class Robot:
         self._has_sample = False
         self._sample_mounted = False
         self.command = UserCommands.NONE
+
+        # Create robot communication socket
+        #self.socket = RobotSocket("192.168.58.38", 10004)
 
     def run(self):
         """
@@ -59,7 +65,7 @@ class RobotReady(Robot):
          }.get(self.command, lambda: super(RobotReady, self).run())() # final () calls the lambda
 
     def _do_state_change_action(self):
-        self.status = "Ready"
+        self.status = RobotStatus.READY
 
 
 class RobotGetSample(Robot):
@@ -78,7 +84,7 @@ class RobotGetSample(Robot):
             self._sample_mounted = False
 
     def _do_state_change_action(self):
-        self.status = "Picking sample"
+        self.status = RobotStatus.PICKING
 
 
 class RobotMoveSample(Robot):
@@ -102,7 +108,7 @@ class RobotMoveSample(Robot):
             pass  # super().run
 
     def _do_state_change_action(self):
-        self.status = "Moving sample"
+        self.status = RobotStatus.MOVING
 
 
 class RobotParking(Robot):
@@ -121,7 +127,7 @@ class RobotParking(Robot):
         self.command = UserCommands.NONE
 
     def _do_state_change_action(self):
-        self.status = "Parking"
+        self.status = RobotStatus.PARKING
 
 
 class RobotParked(Robot):
@@ -139,7 +145,7 @@ class RobotParked(Robot):
          }.get(self.command, lambda: super(RobotParked, self).run())() # final () calls the lambda
 
     def _do_state_change_action(self):
-        self.status = "Parked"
+        self.status = RobotStatus.PARKED
 
 
 class UserCommands(Enum):
@@ -151,3 +157,14 @@ class UserCommands(Enum):
     MOUNT_SAMPLE = "mount sample"
     UNMOUNT_SAMPLE = "unmount sample"
     STOP = "stop"
+
+
+class RobotStatus(Enum):
+    """
+    List of possible states the robot can be in
+    """
+    READY = "Ready"
+    PICKING = "Picking sample"
+    MOVING = "Moving sample"
+    PARKING = "Parking"
+    PARKED = "Parked"

@@ -1,4 +1,4 @@
-from emacontrol.core import Robot
+from emacontrol.core import Robot, RobotStatus
 from emacontrol.core import RobotParked
 from emacontrol.core import UserCommands
 
@@ -15,7 +15,7 @@ class TestStateMachine:
         """
         Tests robot should initialises in the READY state with default variables
         """
-        assert_equal(self.robot.status, "Ready")
+        assert_equal(self.robot.status, RobotStatus.READY)
         assert_false(self.robot._has_sample)
         assert_false(self.robot._sample_mounted)
         assert_equal(self.robot.command, UserCommands.NONE)
@@ -33,16 +33,16 @@ class TestStateMachine:
         self.robot.command = UserCommands.MOUNT_SAMPLE
 
         self.robot.run()  # User trigger
-        assert_equal(self.robot.status, "Picking sample")
+        assert_equal(self.robot.status, RobotStatus.PICKING)
 
         self.robot.run()  # H/W trigger
-        assert_equal(self.robot.status, "Moving sample")
+        assert_equal(self.robot.status, RobotStatus.MOVING)
 
         self.robot.run()  # H/W trigger
-        assert_equal(self.robot.status, "Parking")
+        assert_equal(self.robot.status, RobotStatus.PARKING)
 
         self.robot.run()  # H/W trigger
-        assert_equal(self.robot.status, "Parked")
+        assert_equal(self.robot.status, RobotStatus.PARKED)
 
         try:
             self.robot.run()
@@ -64,13 +64,13 @@ class TestStateMachine:
         self.robot.command = UserCommands.UNMOUNT_SAMPLE
 
         self.robot.run()  # User trigger
-        assert_equal(self.robot.status, "Picking sample")
+        assert_equal(self.robot.status, RobotStatus.PICKING)
         self.robot.run()  # H/W trigger
-        assert_equal(self.robot.status, "Moving sample")
+        assert_equal(self.robot.status, RobotStatus.MOVING)
         self.robot.run()  # H/W trigger
-        assert_equal(self.robot.status, "Parking")
+        assert_equal(self.robot.status, RobotStatus.PARKING)
         self.robot.run()  # H/W trigger
-        assert_equal(self.robot.status, "Ready")
+        assert_equal(self.robot.status, RobotStatus.READY)
 
         try:
             self.robot.run()

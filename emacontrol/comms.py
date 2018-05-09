@@ -1,6 +1,7 @@
 import socket
 import time
-from emacontrol.emaapi import EmaException
+
+from emacontrol.exceptions import EmaCommunicationException
 
 
 class RobotSocket:
@@ -47,11 +48,3 @@ class RobotSocket:
             timeout -= 1
             if timeout <= 0:
                 raise EmaCommunicationException("Timed out waiting for response '{}' from '{}:{}'".format(await, self.address, self.port))
-
-
-class EmaCommunicationException(EmaException):
-    """
-    Exception to be thrown when a communication problems occur.
-    """
-    def __init__(self, msg=None, *args):
-        super().__init__(self, msg, *args)
