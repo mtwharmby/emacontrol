@@ -1,73 +1,82 @@
-import socket as sock
-
-from emacontrol.core import Robot, RobotStatus
+from emacontrol.core import Robot, UserCommands
 
 
-class EmaApi:
-    def __init__(self):
-        self.robot = Robot()
-
-    def connect(self):
-        pass
-
-    # def set_X_axis(self, xVal):
-    #     if xVal.isdigit():
-    #         try:
-    #             sock.send("defX")
-    #             while sock.recv(16) != 'setXaxis:waiting':
-    #                  print('... waiting for response ...')
-    #             sock.send('%i' %int(defX))
-    #         except:
-    #             print('... socket error ...')
-    #     else:
-    #         print('... xVal is not a valid number ...')
-    #
-    # def set_Y_axis(self, yVal):
-    #     if yVal.isdigit():
-    #         try:
-    #             sock.send("defY")
-    #             while sock.recv(16) != 'setYaxis:waiting':
-    #                  print('... waiting for response ...')
-    #                  sock.send('%i' %int(defY))
-    #         except:
-    #             print('... socket error ...')
-    #     else:
-    #         print('... yVal is not a valid number ...')
-    # def send_cmd(self, cmd):
-    #     try:
-    #         sock.send(cmd)
-
-    def start(self):
-        pass
-
-    def stop(self):
-        pass
-
-    def pause(self):
-        pass
-
-    def mount_sample(self, n):
-        #Assert that the robot is ready to go
-        try:
-            assert self.robot.status is RobotStatus.READY
-        except AssertionError:
-            print("Robot is not ready. Cannot mount a sample yet")
-
-        #Set x and z axis locations
-        self.robot.socket.send_config(...) #TODO
-
-        self.robot.run()
+# Create an instance of the robot state machine so we can pass commands to it
+robot = Robot()
 
 
+def connect():
+    '''
+    Robot creates a process containing the state machine (if one doesn't
+    already exist) and connects a socket.
+    to talk to the real hardware.
+    :return:
+    '''
+    pass
 
-    def mount_samples(self, mn):
-        pass
 
-    def unmount_sample(self):
-        pass
+def disconnect(hard=False):
+    '''
+    Tell the robot to close the socket connection or kill the state machine
+    process.
+    :param hard: if True, kill state machine process too
+    :return:
+    '''
+    pass
 
-    def clear_sample(self):
-        pass
 
-    def make_safe(self):
-        pass
+def reconnect(hard=False):
+    '''
+    Close an existing robot connection and connect again. If requested, kill
+    the running state machine process.
+    :param hard: if True, kill state machine process & restart
+    :return:
+    '''
+    disconnect(hard)
+    connect()
+
+
+#These next two might not be neded. Could be included in the robot?
+def init():
+    '''
+    Switch on power at the robot
+    :return:
+    '''
+    robot.sock.power_on()
+
+
+def halt():
+    '''
+    Switch off power to the robot
+    :return:
+    '''
+    robot.sock.power_off()
+
+
+def mount_sample(n):
+    '''
+    Tell the robot to mount a particular sample.
+    :param n: The position number of the sample #TODO Needs a description from Mario
+    :return:
+    '''
+    robot.set_position(n)
+    robot.command = UserCommands.MOUNT_SAMPLE
+    robot.go()
+
+
+def unmount_sample():
+    '''
+    Take the current sample from the diffractometer and return it to its
+    position in the magazines.
+    :return:
+    '''
+    robot.command = UserCommands.UNMOUNT_SAMPLE
+    robot.go()
+
+
+def clear_sample():
+    '''
+    Move sample from diffractometer to the bin.
+    :return:
+    '''
+    pass
