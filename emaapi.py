@@ -22,6 +22,7 @@ import socket
 class Robot():
 
     def __init__(self):
+        self.sample_index = None
         self.x_coord = None
         self.y_coord = None
         # TODO Need a connect method
@@ -40,6 +41,7 @@ class Robot():
         ----------
         n : integer index of the sample to pick
         """
+        self.sample_index = n
         self.x_coord, self.y_coord = Robot.samplenr_to_xy(n) 
         self.send('setAxis#X{0:d}#Y{1:d}'.format(self.x_coord, self.y_coord),
                   wait_for='setAxis:done')
