@@ -25,12 +25,16 @@ class Robot():
         self.sample_index = None
         self.x_coord = None
         self.y_coord = None
+        self.homed = False
         # TODO Need a connect method
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     def send(self, message, wait_for=None):
         # FIXME This is a rough implementation; needs the wait_for stuff
         self.sock.send(message)
+
+    def set_homed(self):
+        pass
 
     def set_sample_coords(self, n):
         """
@@ -95,6 +99,32 @@ def __input_to_int__(value):
     else:
         raise ValueError('Expecting integer. Got: "{0}" ({1})'
                          .format(value, type(value)))
+
+
+def mount_sample(n):
+    """
+    Mount a sample with the requested index on the sample spinner.
+
+    The robot takes the following series of commands to do this:
+    go to sample -> close gripper on sample (move down and close) ->
+    -> go to gate -> go to spinner -> release gripper ->
+    -> go to offside position
+
+    Parameters
+    ----------
+    n : integer index of the sample to be mounted
+    """
+    ema.set_sample_coords(n)
+    if not ema.homed:
+        ema.set_homed()
+
+    # Actually do the movements
+    ema.send('next', wait_for='moveNext:done')
+    ema.send('pick', wait_for='pickSample:done')
+    ema.send('gate', wait_for='moveGate:done')
+    ema.send('spinner', wait_for='moveSpinner:done')
+    ema.send('release', wait_for='releaseSample:done')
+    ema.send('offside', wait_for='moveOffside:done')
 
 
 def power_off():

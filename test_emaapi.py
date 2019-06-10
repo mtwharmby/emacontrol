@@ -13,9 +13,10 @@
 - (compare_sam)
 """
 import pytest
-from mock import patch
+from mock import patch, call
 
-from emaapi import (power_off, power_on, reset, restart, start, stop, Robot)
+from emaapi import (mount_sample, power_off, power_on, reset, restart, start,
+                    stop, Robot)
 
 
 # These tests are just to ensure the correct mapping between function and
@@ -72,3 +73,24 @@ def test_sample_to_coords():
 
     with pytest.raises(ValueError, match=r".*greater than 0"):
         Robot.samplenr_to_xy(0)
+
+
+# The following tests are for functions which wait for a message to return from
+# the robot before continuing
+@patch('emaapi.ema.send')
+@patch('emaapi.ema.set_sample_coords')
+@patch('emaapi.ema.set_homed')
+def test_mount_sample(homed_mock, samcoords_mock, ema_send_mock):
+    mount_sample(75)
+    # Preparation for mounting...
+    samcoords_mock.assert_called_with(75)
+    homed_mock.assert_called_once()
+    # ... and the actual process:
+    send_calls = [call('next', wait_for='moveNext:done'),
+                  call('pick', wait_for='pickSample:done'),
+                  call('gate', wait_for='moveGate:done'),
+                  call('spinner', wait_for='moveSpinner:done'),
+                  call('release', wait_for='releaseSample:done'),
+                  call('offside', wait_for='moveOffside:done')
+                  ]
+    ema_send_mock.assert_has_calls(send_calls)
