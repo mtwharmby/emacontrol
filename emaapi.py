@@ -16,12 +16,33 @@ X stop
 - (calibrate_sam)
 - (compare_sam)
 """
+import socket
 
 
 class Robot():
 
-    def send(self, message):
-        pass
+    def __init__(self):
+        self.x_coord = None
+        self.y_coord = None
+        # TODO Need a connect method
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    def send(self, message, wait_for=None):
+        # FIXME This is a rough implementation; needs the wait_for stuff
+        self.sock.send(message)
+
+    def set_sample_coords(self, n):
+        """
+        Sets the xy coordinates for the next sample to mount based on the index
+        of that sample. Sends these coordinates to the robot controller.
+
+        Parameters
+        ----------
+        n : integer index of the sample to pick
+        """
+        self.x_coord, self.y_coord = Robot.samplenr_to_xy(n) 
+        self.send('setAxis#X{0:d}#Y{1:d}'.format(self.x_coord, self.y_coord),
+                  wait_for='setAxis:done')
 
     @staticmethod
     def samplenr_to_xy(n):

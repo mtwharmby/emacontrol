@@ -57,6 +57,13 @@ def test_stop(ema_send_mock):
 
 
 # Methods inside the implementation of the robot class
+@patch('socket.socket.send')
+def test_set_sample_coords(send_mock):
+    ema = Robot()
+    ema.set_sample_coords(75)
+    send_mock.assert_called_with('setAxis#X8#Y5')
+
+
 def test_sample_to_coords():
     assert (2, 2) == Robot.samplenr_to_xy(12)
     assert (6, 3) == Robot.samplenr_to_xy(53)
