@@ -2,7 +2,7 @@ from emacontrol.core import Robot, UserCommands
 
 
 # Create an instance of the robot state machine so we can pass commands to it
-robot = Robot()
+robot = Robot("192.168.58.38", 10004)
 
 
 def connect():
