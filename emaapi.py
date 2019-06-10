@@ -23,6 +23,31 @@ class Robot():
     def send(self, message):
         pass
 
+    @staticmethod
+    def samplenr_to_xy(n):
+        """
+        Convert the numerical index of the requested sample to xy coordinates
+        on the sample magazine.
+
+        Parameters
+        ----------
+        n : integer
+
+        Returns
+        -------
+        tuple of integers : x & y coordinates
+
+        Raises
+        ------
+        ValueError : if n is not greater than 0
+        """
+        # In the original code this was expressed as:
+        # x=((n-1)/10)+1
+        # y=((n-1)%10)+1
+        if n <= 0:
+            raise ValueError('Expecting value greater than 0')
+        return (n // 10 + 1, n % 10)
+
 
 def power_off():
     """

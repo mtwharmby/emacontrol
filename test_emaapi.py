@@ -12,11 +12,14 @@
 - (calibrate_sam)
 - (compare_sam)
 """
+import pytest
 from mock import patch
 
-from emaapi import (power_off, power_on, reset, restart, start, stop)
+from emaapi import (power_off, power_on, reset, restart, start, stop, Robot)
 
 
+# These tests are just to ensure the correct mapping between function and
+# message sent
 @patch('emaapi.ema.send')
 def test_power_off(ema_send_mock):
     power_off()
@@ -51,3 +54,14 @@ def test_start(ema_send_mock):
 def test_stop(ema_send_mock):
     stop()
     ema_send_mock.assert_called_with('stopMotor')
+
+
+# Methods inside the implementation of the robot class
+def test_sample_to_coords():
+    assert (2, 2) == Robot.samplenr_to_xy(12)
+    assert (6, 3) == Robot.samplenr_to_xy(53)
+    assert (22, 7) == Robot.samplenr_to_xy(217)
+    assert (1, 2) == Robot.samplenr_to_xy(2)
+
+    with pytest.raises(ValueError, match=r".*greater than 0"):
+        Robot.samplenr_to_xy(0)
