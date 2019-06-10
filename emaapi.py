@@ -27,11 +27,12 @@ class Robot():
     def samplenr_to_xy(n):
         """
         Convert the numerical index of the requested sample to xy coordinates
-        on the sample magazine.
+        on the sample magazine. Performs check that the input is an integer
+        greater than zero.
 
         Parameters
         ----------
-        n : integer
+        n : integer (hopefully)
 
         Returns
         -------
@@ -44,9 +45,33 @@ class Robot():
         # In the original code this was expressed as:
         # x=((n-1)/10)+1
         # y=((n-1)%10)+1
+        n = __input_to_int__(n)
         if n <= 0:
             raise ValueError('Expecting value greater than 0')
         return (n // 10 + 1, n % 10)
+
+
+def __input_to_int__(value):
+    """
+    Checks that user input is an integer.
+
+    Parameters
+    ----------
+    n : user input to check
+
+    Returns
+    -------
+    integer : n cast to an integer
+
+    Raises
+    ------
+    ValueError : if n is not an integer
+    """
+    if str(value).isdigit():
+        return int(value)
+    else:
+        raise ValueError('Expecting integer. Got: "{0}" ({1})'
+                         .format(value, type(value)))
 
 
 def power_off():
