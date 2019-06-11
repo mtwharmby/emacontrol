@@ -29,10 +29,11 @@ class Robot():
         self.connected = False
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+        self.ip = None
+        self.port = None
+
     def connect(self):
-        ip = '127.0.0.2'
-        port = 10005
-        self.sock.connect((ip, port))
+        self.sock.connect((self.ip, self.port))
         self.connected = True
 
     def disconnect(self):

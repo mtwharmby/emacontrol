@@ -92,6 +92,8 @@ def test_set_sample_coords():
 @patch('socket.socket')
 def test_connect(sock_mock):
     ema = Robot()
+    ema.ip = '127.0.0.2'
+    ema.port = 10005
     assert ema.connected is False
     ema.connect()
     assert ema.connected is True
