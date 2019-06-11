@@ -109,8 +109,8 @@ def mount_sample(n):
     Mount a sample with the requested index on the sample spinner.
 
     The robot takes the following series of commands to do this:
-    go to sample -> close gripper on sample (move down and close) ->
-    -> go to gate -> go to spinner -> release gripper ->
+    go to sample on board-> close gripper on sample (move down and close) ->
+    -> go to gate -> go to spinner -> release sample ->
     -> go to offside position
 
     Parameters
@@ -162,6 +162,22 @@ def start():
 def stop():
     # TODO: Needs doc
     ema.send('stopMotor')
+
+
+def unmount_sample():
+    """
+    Remove the sample currently on the diffractometer spinner and return it to
+    its place in the sample magazine.
+
+    The robot takes the following series of commands to do this:
+    go to spinner -> close gripper on sample (move in and close) ->
+    -> go to gate -> go to sample on board -> release sample
+    """
+    ema.send('spinner', wait_for='moveSpinner:done')
+    ema.send('pick', wait_for='pickSample:done')
+    ema.send('gate', wait_for='moveGate:done')
+    ema.send('current', wait_for='returnCurrent:done')
+    ema.send('release', wait_for='releaseSample:done')
 
 
 ema = Robot()

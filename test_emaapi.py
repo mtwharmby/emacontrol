@@ -16,7 +16,7 @@ import pytest
 from mock import patch, call
 
 from emaapi import (mount_sample, power_off, power_on, reset, restart, start,
-                    stop, Robot)
+                    stop, Robot, unmount_sample)
 
 
 # These tests are just to ensure the correct mapping between function and
@@ -105,5 +105,17 @@ def test_mount_sample(homed_mock, samcoords_mock, ema_send_mock):
                   call('spinner', wait_for='moveSpinner:done'),
                   call('release', wait_for='releaseSample:done'),
                   call('offside', wait_for='moveOffside:done')
+                  ]
+    ema_send_mock.assert_has_calls(send_calls)
+
+
+@patch('emaapi.ema.send')
+def test_unmount_sample(ema_send_mock):
+    unmount_sample()
+    send_calls = [call('spinner', wait_for='moveSpinner:done'),
+                  call('pick', wait_for='pickSample:done'),
+                  call('gate', wait_for='moveGate:done'),
+                  call('current', wait_for='returnCurrent:done'),
+                  call('release', wait_for='releaseSample:done')
                   ]
     ema_send_mock.assert_has_calls(send_calls)
