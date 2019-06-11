@@ -26,8 +26,18 @@ class Robot():
         self.x_coord = None
         self.y_coord = None
         self.homed = False
-        # TODO Need a connect method
+        self.connected = False
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    def connect(self):
+        ip = '127.0.0.2'
+        port = 10005
+        self.sock.connect((ip, port))
+        self.connected = True
+
+    def disconnect(self):
+        self.sock.close()
+        self.connected = False
 
     def send(self, message, wait_for=None):
         # FIXME This is a rough implementation; needs the wait_for stuff

@@ -12,6 +12,7 @@
 - (calibrate_sam)
 - (compare_sam)
 """
+import socket
 import pytest
 from mock import patch, call
 
@@ -58,6 +59,17 @@ def test_stop(ema_send_mock):
 
 
 # Methods inside the implementation of the robot class
+@patch('socket.socket')
+def test_init(mock_sock):
+    ema = Robot()
+    assert ema.sample_index is None
+    assert ema.x_coord is None
+    assert ema.y_coord is None
+    assert ema.homed is False
+    assert ema.connected is False
+    assert mock_sock.mock_calls == [call(socket.AF_INET, socket.SOCK_STREAM)]
+
+
 def test_set_homed():
     with patch('emaapi.Robot.send') as send_mock:
         ema = Robot()
@@ -75,6 +87,23 @@ def test_set_sample_coords():
         ema = Robot()
         ema.set_sample_coords(75)
         send_mock.assert_called_with('setAxis#X8#Y5', wait_for='setAxis:done')
+
+
+@patch('socket.socket')
+def test_connect(sock_mock):
+    ema = Robot()
+    assert ema.connected is False
+    ema.connect()
+    assert ema.connected is True
+    ema.disconnect()
+    assert ema.connected is False
+    ema.connect()
+    assert ema.connected is True
+    sock_calls = [call(socket.AF_INET, socket.SOCK_STREAM),
+                  call().connect(('127.0.0.2', 10005)),
+                  call().close(),
+                  call().connect(('127.0.0.2', 10005))]
+    assert sock_mock.mock_calls == sock_calls
 
 
 # Method supports set_sample_coords
