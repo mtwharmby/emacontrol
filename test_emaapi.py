@@ -12,7 +12,11 @@
 - (calibrate_sam)
 - (compare_sam)
 """
+import os
 import socket
+
+from pathlib import Path
+
 import pytest
 from mock import call, Mock, patch
 
@@ -67,12 +71,16 @@ def test_init(mock_sock):
     assert ema.y_coord is None
     assert ema.homed is False
     assert ema.connected is False
+    assert ema.address is None
+    assert ema.port is None
+    assert ema.config_file == os.path.join(Path.home(), '.robot.ini')
     assert mock_sock.mock_calls == [call(socket.AF_INET, socket.SOCK_STREAM)]
 
 
-def test_set_homed():
+@patch('configparser.ConfigParser')
+def test_set_homed(conf_mock):
     with patch('emaapi.Robot.send') as send_mock:
-        ema = Robot()
+        ema = Robot(None)
         assert ema.homed is False
         ema.set_homed()
         assert ema.homed is True
@@ -82,18 +90,27 @@ def test_set_homed():
         send_mock.assert_has_calls(send_calls)
 
 
-def test_set_sample_coords():
+@patch('configparser.ConfigParser')
+def test_set_sample_coords(conf_mock):
     with patch('emaapi.Robot.send') as send_mock:
         ema = Robot()
         ema.set_sample_coords(75)
         send_mock.assert_called_with('setAxis#X8#Y5', wait_for='setAxis:done')
 
 
+def test_read_config():
+    ema = Robot(config_file='./example_config.ini')
+    ema.__read_config__()
+    assert ema.address == '127.0.0.2'
+    assert ema.port == 10005
+
+
+@patch('configparser.ConfigParser')
 @patch('socket.socket')
-def test_connect(sock_mock):
+def test_connect(sock_mock, conf_mock):
     ema = Robot()
-    ema.ip = '127.0.0.2'
-    ema.port = 10005
+    ema.address = '127.0.0.3'
+    ema.port = 10006
     assert ema.connected is False
     ema.connect()
     assert ema.connected is True
@@ -102,9 +119,9 @@ def test_connect(sock_mock):
     ema.connect()
     assert ema.connected is True
     sock_calls = [call(socket.AF_INET, socket.SOCK_STREAM),
-                  call().connect(('127.0.0.2', 10005)),
+                  call().connect(('127.0.0.3', 10006)),
                   call().close(),
-                  call().connect(('127.0.0.2', 10005))]
+                  call().connect(('127.0.0.3', 10006))]
     assert sock_mock.mock_calls == sock_calls
 
 

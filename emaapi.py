@@ -16,24 +16,43 @@ X stop
 - (calibrate_sam)
 - (compare_sam)
 """
+import configparser
+import os
 import socket
+
+from pathlib import Path
 
 
 class Robot():
 
-    def __init__(self):
+    def __init__(self, config_file=os.path.join(Path.home(), '.robot.ini')):
         self.sample_index = None
         self.x_coord = None
         self.y_coord = None
         self.homed = False
         self.connected = False
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        self.ip = None
+        self.address = None
         self.port = None
+        self.config_file = config_file
+
+    def __read_config__(self):
+        if not os.path.exists(self.config_file):
+            raise(FileNotFoundError('Cannot find E.M.A. API config file: {}'
+                                    .format(self.config_file)))
+        confparse = configparser.ConfigParser()
+        confparse.read(self.config_file)
+
+        # Read values from config ensuring port is integer > 0
+        self.address = confparse.get('robot', 'address')
+        self.port = __input_to_int__(confparse.get('robot', 'port'))
+        if self.port <= 0:
+            raise ValueError('Expecting value greater than 0')
 
     def connect(self):
-        self.sock.connect((self.ip, self.port))
+        if (self.address is None) or (self.port is None):
+            self.__read_config__()
+        self.sock.connect((self.address, self.port))
         self.connected = True
 
     def disconnect(self):
