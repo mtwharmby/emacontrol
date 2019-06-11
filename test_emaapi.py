@@ -70,13 +70,14 @@ def test_set_homed():
         send_mock.assert_has_calls(send_calls)
 
 
-@patch('socket.socket.send')
-def test_set_sample_coords(send_mock):
-    ema = Robot()
-    ema.set_sample_coords(75)
-    send_mock.assert_called_with('setAxis#X8#Y5')
+def test_set_sample_coords():
+    with patch('emaapi.Robot.send') as send_mock:
+        ema = Robot()
+        ema.set_sample_coords(75)
+        send_mock.assert_called_with('setAxis#X8#Y5', wait_for='setAxis:done')
 
 
+# Method supports set_sample_coords
 def test_sample_to_coords():
     assert (2, 2) == Robot.samplenr_to_xy(12)
     assert (6, 3) == Robot.samplenr_to_xy(53)
