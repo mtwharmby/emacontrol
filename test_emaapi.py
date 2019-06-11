@@ -58,6 +58,18 @@ def test_stop(ema_send_mock):
 
 
 # Methods inside the implementation of the robot class
+def test_set_homed():
+    with patch('emaapi.Robot.send') as send_mock:
+        ema = Robot()
+        assert ema.homed is False
+        ema.set_homed()
+        assert ema.homed is True
+        send_calls = [call('gate', wait_for='moveGate:done'),
+                      call('homing', wait_for='homing:done')
+                      ]
+        send_mock.assert_has_calls(send_calls)
+
+
 @patch('socket.socket.send')
 def test_set_sample_coords(send_mock):
     ema = Robot()

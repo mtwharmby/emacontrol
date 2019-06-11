@@ -34,7 +34,10 @@ class Robot():
         self.sock.send(message)
 
     def set_homed(self):
-        pass
+        print("Robot is not homed. Performing homing procedure...")
+        self.send('gate', wait_for='moveGate:done')
+        self.send('homing', wait_for='homing:done')
+        self.homed = True
 
     def set_sample_coords(self, n):
         """
