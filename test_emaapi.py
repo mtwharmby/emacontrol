@@ -125,6 +125,11 @@ def test_connect(sock_mock, conf_mock):
     assert sock_mock.mock_calls == sock_calls
 
 
+# def test_send():
+# FIXME!
+#     pass
+
+
 # Method supports set_sample_coords
 def test_sample_to_coords():
     assert (2, 2) == Robot.samplenr_to_xy(12)

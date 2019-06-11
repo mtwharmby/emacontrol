@@ -18,6 +18,7 @@ X stop
 """
 import configparser
 import os
+import time
 import socket
 
 from pathlib import Path
@@ -60,8 +61,11 @@ class Robot():
         self.connected = False
 
     def send(self, message, wait_for=None):
-        # FIXME This is a rough implementation; needs the wait_for stuff
         self.sock.send(message)
+        if wait_for:
+            expect_buffer = len(wait_for)
+            while self.sock.recv(expect_buffer) != wait_for:
+                time.sleep(0.5)
 
     def set_homed(self):
         print("Robot is not homed. Performing homing procedure...")
