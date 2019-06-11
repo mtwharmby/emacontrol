@@ -14,7 +14,7 @@
 """
 import socket
 import pytest
-from mock import patch, call
+from mock import call, Mock, patch
 
 from emaapi import (mount_sample, power_off, power_on, reset, restart, start,
                     stop, Robot, unmount_sample)
@@ -22,40 +22,40 @@ from emaapi import (mount_sample, power_off, power_on, reset, restart, start,
 
 # These tests are just to ensure the correct mapping between function and
 # message sent
-@patch('emaapi.ema.send')
-def test_power_off(ema_send_mock):
+@patch('emaapi.ema')
+def test_power_off(ema_mock):
     power_off()
-    ema_send_mock.assert_called_with('powerOff')
+    assert ema_mock.mock_calls == [call.send('powerOff')]
 
 
-@patch('emaapi.ema.send')
-def test_power_on(ema_send_mock):
+@patch('emaapi.ema')
+def test_power_on(ema_mock):
     power_on()
-    ema_send_mock.assert_called_with('powerOn')
+    assert ema_mock.mock_calls == [call.send('powerOn')]
 
 
-@patch('emaapi.ema.send')
-def test_reset(ema_send_mock):
+@patch('emaapi.ema')
+def test_reset(ema_mock):
     reset()
-    ema_send_mock.assert_called_with('reset')
+    assert ema_mock.mock_calls == [call.send('reset')]
 
 
-@patch('emaapi.ema.send')
-def test_restart(ema_send_mock):
+@patch('emaapi.ema')
+def test_restart(ema_mock):
     restart()
-    ema_send_mock.assert_called_with('restartMotor')
+    assert ema_mock.mock_calls == [call.send('restartMotor')]
 
 
-@patch('emaapi.ema.send')
-def test_start(ema_send_mock):
+@patch('emaapi.ema')
+def test_start(ema_mock):
     start()
-    ema_send_mock.assert_called_with('start')
+    assert ema_mock.mock_calls == [call.send('start')]
 
 
-@patch('emaapi.ema.send')
-def test_stop(ema_send_mock):
+@patch('emaapi.ema')
+def test_stop(ema_mock):
     stop()
-    ema_send_mock.assert_called_with('stopMotor')
+    assert ema_mock.mock_calls == [call.send('stopMotor')]
 
 
 # Methods inside the implementation of the robot class
@@ -121,10 +121,16 @@ def test_sample_to_coords():
 
 # The following tests are for functions which wait for a message to return from
 # the robot before continuing
-@patch('emaapi.ema.send')
-@patch('emaapi.ema.set_sample_coords')
-@patch('emaapi.ema.set_homed')
-def test_mount_sample(homed_mock, samcoords_mock, ema_send_mock):
+@patch('emaapi.ema')
+def test_mount_sample(ema_mock):
+    samcoords_mock = Mock()
+    homed_mock = Mock()
+    send_mock = Mock()
+    ema_mock.set_sample_coords = samcoords_mock
+    ema_mock.homed = False
+    ema_mock.set_homed = homed_mock
+    ema_mock.send = send_mock
+
     mount_sample(75)
     # Preparation for mounting...
     samcoords_mock.assert_called_with(75)
@@ -137,16 +143,16 @@ def test_mount_sample(homed_mock, samcoords_mock, ema_send_mock):
                   call('release', wait_for='releaseSample:done'),
                   call('offside', wait_for='moveOffside:done')
                   ]
-    ema_send_mock.assert_has_calls(send_calls)
+    send_mock.assert_has_calls(send_calls)
 
 
-@patch('emaapi.ema.send')
-def test_unmount_sample(ema_send_mock):
+@patch('emaapi.ema')
+def test_unmount_sample(ema_mock):
     unmount_sample()
-    send_calls = [call('spinner', wait_for='moveSpinner:done'),
-                  call('pick', wait_for='pickSample:done'),
-                  call('gate', wait_for='moveGate:done'),
-                  call('current', wait_for='returnCurrent:done'),
-                  call('release', wait_for='releaseSample:done')
+    send_calls = [call.send('spinner', wait_for='moveSpinner:done'),
+                  call.send('pick', wait_for='pickSample:done'),
+                  call.send('gate', wait_for='moveGate:done'),
+                  call.send('current', wait_for='returnCurrent:done'),
+                  call.send('release', wait_for='releaseSample:done')
                   ]
-    ema_send_mock.assert_has_calls(send_calls)
+    ema_mock.assert_has_calls(send_calls)
