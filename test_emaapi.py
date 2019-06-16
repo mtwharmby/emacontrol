@@ -20,46 +20,22 @@ from pathlib import Path
 import pytest
 from mock import call, Mock, patch
 
-from emaapi import (mount_sample, power_off, power_on, reset, restart, start,
-                    stop, Robot, unmount_sample)
+from emaapi import (mount_sample, start, stop, Robot, unmount_sample)
 
 
-# These tests are just to ensure the correct mapping between function and
-# message sent
-@patch('emaapi.ema')
-def test_power_off(ema_mock):
-    power_off()
-    assert ema_mock.mock_calls == [call.send('powerOff')]
-
-
-@patch('emaapi.ema')
-def test_power_on(ema_mock):
-    power_on()
-    assert ema_mock.mock_calls == [call.send('powerOn')]
-
-
-@patch('emaapi.ema')
-def test_reset(ema_mock):
-    reset()
-    assert ema_mock.mock_calls == [call.send('reset')]
-
-
-@patch('emaapi.ema')
-def test_restart(ema_mock):
-    restart()
-    assert ema_mock.mock_calls == [call.send('restartMotor')]
-
-
+# These tests are for the  basic start-up/shutdown methods
 @patch('emaapi.ema')
 def test_start(ema_mock):
     start()
-    assert ema_mock.mock_calls == [call.send('start')]
+    assert ema_mock.mock_calls == [call.connect(),
+                                   call.send('powerOn')]
 
 
 @patch('emaapi.ema')
 def test_stop(ema_mock):
     stop()
-    assert ema_mock.mock_calls == [call.send('stopMotor')]
+    assert ema_mock.mock_calls == [call.send('powerOff'),
+                                   call.disconnect()]
 
 
 # Methods inside the implementation of the robot class

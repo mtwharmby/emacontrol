@@ -164,38 +164,23 @@ def mount_sample(n):
     ema.send('offside', wait_for='moveOffside:done')
 
 
-def power_off():
-    """
-    Disables power to the robot.
-    """
-    ema.send('powerOff')
-
-
-def power_on():
-    """
-    Enables power to the robot.
-    """
-    ema.send('powerOn')
-
-
-def reset():
-    # TODO: Needs doc
-    ema.send('reset')
-
-
-def restart():
-    # TODO: Needs doc
-    ema.send('restartMotor')
-
-
 def start():
-    # TODO: Needs doc
-    ema.send('start')
+    """
+    Prepare the robot for a sample exchanging run. Opens the socket connection
+    and then turns the power on to the robot.
+    """
+    ema.connect()
+    ema.send('powerOn')
+    time.sleep(3)  # I don't know if there's a return on this call. So we wait. 
 
 
 def stop():
-    # TODO: Needs doc
-    ema.send('stopMotor')
+    """
+    Function to call at the end of a sample exchanging run. Turns power off to
+    the robot and then closes the socket connection.
+    """
+    ema.send('powerOff')
+    ema.disconnect()
 
 
 def unmount_sample():
