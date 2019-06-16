@@ -21,12 +21,16 @@ import os
 import time
 import socket
 
-from pathlib import Path
+# For Python >3.4, a more portable way to getting the home directory is:
+# from pathlib import Path
+# home_dir = Path.home()
+# This doesn't seem to work on Debian 9. This might not work under Windows...
+default_config = os.path.join(os.path.expanduser('~'), '.robot.ini')
 
 
 class Robot():
 
-    def __init__(self, config_file=os.path.join(Path.home(), '.robot.ini')):
+    def __init__(self, config_file=default_config):
         self.sample_index = None
         self.x_coord = None
         self.y_coord = None
@@ -68,6 +72,7 @@ class Robot():
 
             while recv_msg != wait_for.encode():
                 recv_msg = self.sock.recv(msg_len)
+                print('{}'.format(recv_msg))
 
     def set_homed(self):
         print("Robot is not homed. Performing homing procedure...")

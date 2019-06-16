@@ -15,7 +15,7 @@
 import os
 import socket
 
-from pathlib import Path
+from pathlib import Path  # This might not work on Deb 9
 
 import pytest
 from mock import call, Mock, patch
@@ -113,7 +113,6 @@ def test_send(recv_mock, send_mock):
     # Test sending message & waiting for a response
     recv_mock.return_value = 'test:done'.encode()
     ema.send('test', wait_for='test:done')
-    # TODO? Make test more sophisticated?
 
 
 # Method supports set_sample_coords
