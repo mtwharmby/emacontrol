@@ -124,6 +124,7 @@ def test_mount_sample(ema_mock):
     samcoords_mock = Mock()
     homed_mock = Mock()
     send_mock = Mock()
+    ema_mock.connected = True
     ema_mock.set_sample_coords = samcoords_mock
     ema_mock.homed = False
     ema_mock.set_homed = homed_mock
@@ -143,9 +144,14 @@ def test_mount_sample(ema_mock):
                   ]
     send_mock.assert_has_calls(send_calls)
 
+    ema_mock.connected = False
+    with pytest.raises(Exception, match=r".*Did you run the start.*"):
+        mount_sample(75)
+
 
 @patch('emaapi.ema')
 def test_unmount_sample(ema_mock):
+    ema_mock.connected = True
     unmount_sample()
     send_calls = [call.send('spinner', wait_for='moveSpinner:done'),
                   call.send('pick', wait_for='pickSample:done'),
@@ -154,3 +160,7 @@ def test_unmount_sample(ema_mock):
                   call.send('release', wait_for='releaseSample:done')
                   ]
     ema_mock.assert_has_calls(send_calls)
+
+    ema_mock.connected = False
+    with pytest.raises(Exception, match=r".*Did you run the start.*"):
+        unmount_sample()

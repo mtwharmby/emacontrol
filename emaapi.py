@@ -151,6 +151,8 @@ def mount_sample(n):
     ----------
     n : integer index of the sample to be mounted
     """
+    if not ema.connected:
+        raise Exception('Robot not connected. Did you run the start() method?')
     ema.set_sample_coords(n)
     if not ema.homed:
         ema.set_homed()
@@ -192,6 +194,8 @@ def unmount_sample():
     go to spinner -> close gripper on sample (move in and close) ->
     -> go to gate -> go to sample on board -> release sample
     """
+    if not ema.connected:
+        raise Exception('Robot not connected. Did you run the start() method?')
     ema.send('spinner', wait_for='moveSpinner:done')
     ema.send('pick', wait_for='pickSample:done')
     ema.send('gate', wait_for='moveGate:done')
