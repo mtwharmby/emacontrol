@@ -61,11 +61,13 @@ class Robot():
         self.connected = False
 
     def send(self, message, wait_for=None):
-        self.sock.send(message)
+        self.sock.send(message.encode())
         if wait_for:
-            expect_buffer = len(wait_for)
-            while self.sock.recv(expect_buffer) != wait_for:
-                time.sleep(0.5)
+            msg_len = len(wait_for.encode())
+            recv_msg = ''
+
+            while recv_msg != wait_for.encode():
+                recv_msg = self.sock.recv(msg_len)
 
     def set_homed(self):
         print("Robot is not homed. Performing homing procedure...")

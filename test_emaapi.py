@@ -101,9 +101,19 @@ def test_connect(sock_mock, conf_mock):
     assert sock_mock.mock_calls == sock_calls
 
 
-# def test_send():
-# FIXME!
-#     pass
+@patch('socket.socket.send')
+@patch('socket.socket.recv')
+def test_send(recv_mock, send_mock):
+    ema = Robot()
+
+    # Test just sending a message
+    ema.send('test')
+    send_mock.assert_called_with(b'test')
+
+    # Test sending message & waiting for a response
+    recv_mock.return_value = 'test:done'.encode()
+    ema.send('test', wait_for='test:done')
+    # TODO? Make test more sophisticated?
 
 
 # Method supports set_sample_coords
