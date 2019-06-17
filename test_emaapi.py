@@ -39,8 +39,7 @@ def test_stop(ema_mock):
 
 
 # Methods inside the implementation of the robot class
-@patch('socket.socket')
-def test_init(mock_sock):
+def test_init():
     ema = Robot()
     assert ema.sample_index is None
     assert ema.x_coord is None
@@ -50,7 +49,7 @@ def test_init(mock_sock):
     assert ema.address is None
     assert ema.port is None
     assert ema.config_file == os.path.join(Path.home(), '.robot.ini')
-    assert mock_sock.mock_calls == [call(socket.AF_INET, socket.SOCK_STREAM)]
+    assert ema.sock is None
 
 
 @patch('configparser.ConfigParser')
@@ -81,37 +80,43 @@ def test_read_config():
     assert ema.port == 10005
 
 
-@patch('configparser.ConfigParser')
 @patch('socket.socket')
-def test_connect(sock_mock, conf_mock):
+def test_connect(sock_mock):
     ema = Robot()
     ema.address = '127.0.0.3'
     ema.port = 10006
     assert ema.connected is False
     ema.connect()
     assert ema.connected is True
-    ema.disconnect()
-    assert ema.connected is False
-    ema.connect()
-    assert ema.connected is True
     sock_calls = [call(socket.AF_INET, socket.SOCK_STREAM),
-                  call().connect(('127.0.0.3', 10006)),
-                  call().close(),
                   call().connect(('127.0.0.3', 10006))]
     assert sock_mock.mock_calls == sock_calls
 
 
-@patch('socket.socket.send')
-@patch('socket.socket.recv')
-def test_send(recv_mock, send_mock):
+@patch('socket.socket')
+def test_disconnect(sock_mock):
     ema = Robot()
+    ema.address = '127.0.0.3'
+    ema.port = 10006
+    assert ema.connected is False
+    ema.connect()
+    ema.disconnect()
+    assert ema.connected is False
+
+
+@patch('socket.socket')
+def test_send(sock_mock, monkeypatch):
+    ema = Robot()
+    ema.address = '127.0.0.3'
+    ema.port = 10006
+    ema.connect()
 
     # Test just sending a message
     ema.send('test')
-    send_mock.assert_called_with(b'test')
+    sock_mock.return_value.send.assert_called_with(b'test')
 
     # Test sending message & waiting for a response
-    recv_mock.return_value = 'test:done'.encode()
+    sock_mock.return_value.recv.return_value = 'test:done'.encode()
     ema.send('test', wait_for='test:done')
 
 

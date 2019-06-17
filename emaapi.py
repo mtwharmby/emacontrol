@@ -36,7 +36,7 @@ class Robot():
         self.y_coord = None
         self.homed = False
         self.connected = False
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock = None
         self.address = None
         self.port = None
         self.config_file = config_file
@@ -55,6 +55,7 @@ class Robot():
             raise ValueError('Expecting value greater than 0')
 
     def connect(self):
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if (self.address is None) or (self.port is None):
             self.__read_config__()
         self.sock.connect((self.address, self.port))
@@ -72,7 +73,6 @@ class Robot():
 
             while recv_msg != wait_for.encode():
                 recv_msg = self.sock.recv(msg_len)
-                print('{}'.format(recv_msg))
 
     def set_homed(self):
         print("Robot is not homed. Performing homing procedure...")
