@@ -3,7 +3,6 @@ Robot class should create a socket and provide methods to use that socket to pas
 Methods on the module should then use an instance of this class to send commands to achieve tasks
 
     TODO
-    - Create decorator for printed output
     - Add recording of last mounted sample
     - Add recording of last message sent
     - Add state machine to allow recovery if software crashes
@@ -60,6 +59,7 @@ class Robot():
         self.connected = True
 
     def disconnect(self):
+        self.sock.shutdown(socket.SHUT_RDWR)
         self.sock.close()
         self.connected = False
 
