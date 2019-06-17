@@ -1,6 +1,7 @@
 """
-Robot class should create a socket and provide methods to use that socket to pass instructions through that socket to the robot.
-Methods on the module should then use an instance of this class to send commands to achieve tasks
+Robot class should create a socket and provide methods to use that socket to
+pass instructions through that socket to the robot. Methods on the module
+should then use an instance of this class to send commands to achieve tasks.
 
     TODO
     - Add recording of last mounted sample
@@ -14,7 +15,6 @@ Methods on the module should then use an instance of this class to send commands
 """
 import configparser
 import os
-import time
 import socket
 
 # For Python >3.4, a more portable way to getting the home directory is:
@@ -89,7 +89,7 @@ class Robot():
         n : integer index of the sample to pick
         """
         self.sample_index = n
-        self.x_coord, self.y_coord = Robot.samplenr_to_xy(n) 
+        self.x_coord, self.y_coord = Robot.samplenr_to_xy(n)
         self.send('setAxis#X{0:d}#Y{1:d}'.format(self.x_coord, self.y_coord),
                   wait_for='setAxis:done')
 
@@ -144,6 +144,31 @@ def __input_to_int__(value):
                          .format(value, type(value)))
 
 
+def start():
+    """
+    Prepare the robot for a sample exchanging run. Opens the socket connection
+    and then turns the power on to the robot.
+    """
+    # TODO Ideally this would check the interlock programmatically. But this
+    # isn't an option yet.
+    input('Have you pressed the reset button?\nPress enter to continue...')
+    print('Starting E.M.A. sample changer... ', end='')
+    ema.connect()
+    ema.send('powerOn', wait_for='enablePower:done')
+    print('Done')
+
+
+def stop():
+    """
+    Function to call at the end of a sample exchanging run. Turns power off to
+    the robot and then closes the socket connection.
+    """
+    print('Powering off E.M.A. sample changer... ', end='')
+    ema.send('powerOff')
+    ema.disconnect()
+    print('Done')
+
+
 def mount_sample(n):
     """
     Mount a sample with the requested index on the sample spinner.
@@ -171,31 +196,6 @@ def mount_sample(n):
     ema.send('spinner', wait_for='moveSpinner:done')
     ema.send('release', wait_for='releaseSample:done')
     ema.send('offside', wait_for='moveOffside:done')
-    print('Done')
-
-
-def start():
-    """
-    Prepare the robot for a sample exchanging run. Opens the socket connection
-    and then turns the power on to the robot.
-    """
-    # TODO Ideally this would check the interlock programmatically. But this
-    # isn't an option yet.
-    input('Have you pressed the reset button?\nPress enter to continue...')
-    print('Starting E.M.A. sample changer... ', end='')
-    ema.connect()
-    ema.send('powerOn', wait_for='enablePower:done')
-    print('Done')
-
-
-def stop():
-    """
-    Function to call at the end of a sample exchanging run. Turns power off to
-    the robot and then closes the socket connection.
-    """
-    print('Powering off E.M.A. sample changer... ', end='')
-    ema.send('powerOff')
-    ema.disconnect()
     print('Done')
 
 
