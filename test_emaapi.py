@@ -12,9 +12,12 @@ from emaapi import (mount_sample, start, stop, Robot, unmount_sample)
 # These tests are for the  basic start-up/shutdown methods
 @patch('emaapi.ema')
 def test_start(ema_mock):
-    start()
+    with patch('builtins.input'):
+        start()
     assert ema_mock.mock_calls == [call.connect(),
-                                   call.send('powerOn')]
+                                   call.send('powerOn', 
+                                             wait_for='enablePower:done')
+                                   ]
 
 
 @patch('emaapi.ema')

@@ -73,10 +73,11 @@ class Robot():
                 recv_msg = self.sock.recv(msg_len)
 
     def set_homed(self):
-        print("Robot is not homed. Performing homing procedure...")
+        print('Robot is not homed. Performing homing procedure... ', end='')
         self.send('gate', wait_for='moveGate:done')
         self.send('homing', wait_for='homing:done')
         self.homed = True
+        print('Homing done')
 
     def set_sample_coords(self, n):
         """
@@ -161,6 +162,7 @@ def mount_sample(n):
     ema.set_sample_coords(n)
     if not ema.homed:
         ema.set_homed()
+    print('Mounting sample {}... '.format(n), end='')
 
     # Actually do the movements
     ema.send('next', wait_for='moveNext:done')
@@ -169,6 +171,7 @@ def mount_sample(n):
     ema.send('spinner', wait_for='moveSpinner:done')
     ema.send('release', wait_for='releaseSample:done')
     ema.send('offside', wait_for='moveOffside:done')
+    print('Done')
 
 
 def start():
@@ -176,9 +179,13 @@ def start():
     Prepare the robot for a sample exchanging run. Opens the socket connection
     and then turns the power on to the robot.
     """
+    # TODO Ideally this would check the interlock programmatically. But this
+    # isn't an option yet.
+    input('Have you pressed the reset button?\nPress enter to continue...')
+    print('Starting E.M.A. sample changer... ', end='')
     ema.connect()
-    ema.send('powerOn')
-    time.sleep(3)  # I don't know if there's a return on this call. So we wait. 
+    ema.send('powerOn', wait_for='enablePower:done')
+    print('Done')
 
 
 def stop():
@@ -186,8 +193,10 @@ def stop():
     Function to call at the end of a sample exchanging run. Turns power off to
     the robot and then closes the socket connection.
     """
+    print('Powering off E.M.A. sample changer... ', end='')
     ema.send('powerOff')
     ema.disconnect()
+    print('Done')
 
 
 def unmount_sample():
@@ -201,11 +210,13 @@ def unmount_sample():
     """
     if not ema.connected:
         raise Exception('Robot not connected. Did you run the start() method?')
+    print('Unmounting sample... ', end='')
     ema.send('spinner', wait_for='moveSpinner:done')
     ema.send('pick', wait_for='pickSample:done')
     ema.send('gate', wait_for='moveGate:done')
     ema.send('current', wait_for='returnCurrent:done')
     ema.send('release', wait_for='releaseSample:done')
+    print('Done')
 
 
 ema = Robot()
