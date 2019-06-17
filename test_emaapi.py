@@ -1,17 +1,3 @@
-"""
-- power_on
-- power_off
-- start
-- stop
-- set_axis
-- homing
-- power_status
-- mount_sample
-- unmount_sample
-- (status)
-- (calibrate_sam)
-- (compare_sam)
-"""
 import os
 import socket
 

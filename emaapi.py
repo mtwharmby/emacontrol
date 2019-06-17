@@ -2,19 +2,16 @@
 Robot class should create a socket and provide methods to use that socket to pass instructions through that socket to the robot.
 Methods on the module should then use an instance of this class to send commands to achieve tasks
 
-methods required:
-X power_on
-X power_off
-X start
-X stop
-- set_axis
-- homing
-- power_status
-- mount_sample
-- unmount_sample
-- (status)
-- (calibrate_sam)
-- (compare_sam)
+    TODO
+    - Create decorator for printed output
+    - Add recording of last mounted sample
+    - Add recording of last message sent
+    - Add state machine to allow recovery if software crashes
+
+    NEEDED
+    Clear sample(?)
+    Go to zero position (check with Mario what is best)
+    Setting of sam postion
 """
 import configparser
 import os
@@ -24,7 +21,8 @@ import socket
 # For Python >3.4, a more portable way to getting the home directory is:
 # from pathlib import Path
 # home_dir = Path.home()
-# This doesn't seem to work on Debian 9. This might not work under Windows...
+# But pathlib doesn't seem to work on Debian 9. And this might not work under
+# Windows...
 default_config = os.path.join(os.path.expanduser('~'), '.robot.ini')
 
 
