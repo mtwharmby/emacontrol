@@ -6,14 +6,14 @@ from pathlib import Path  # This might not work on Deb 9
 import pytest
 from mock import call, Mock, patch
 
-from emaapi import (mount_sample, start, stop, Robot, unmount_sample)
+from emaapi import robot_begin, robot_end, mount_sample, unmount_sample, Robot
 
 
 # These tests are for the  basic start-up/shutdown methods
 @patch('emaapi.ema')
 def test_start(ema_mock):
     with patch('builtins.input'):
-        start()
+        robot_begin()
     assert ema_mock.mock_calls == [call.connect(),
                                    call.send('powerOn', 
                                              wait_for='enablePower:done')
@@ -22,7 +22,7 @@ def test_start(ema_mock):
 
 @patch('emaapi.ema')
 def test_stop(ema_mock):
-    stop()
+    robot_end()
     assert ema_mock.mock_calls == [call.send('powerOff'),
                                    call.disconnect()]
 

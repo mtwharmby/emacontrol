@@ -144,7 +144,7 @@ def __input_to_int__(value):
                          .format(value, type(value)))
 
 
-def start():
+def robot_begin():
     """
     Prepare the robot for a sample exchanging run. Opens the socket connection
     and then turns the power on to the robot.
@@ -158,7 +158,7 @@ def start():
     print('Done')
 
 
-def stop():
+def robot_end():
     """
     Function to call at the end of a sample exchanging run. Turns power off to
     the robot and then closes the socket connection.
