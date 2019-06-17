@@ -4,6 +4,7 @@ pass instructions through that socket to the robot. Methods on the module
 should then use an instance of this class to send commands to achieve tasks.
 
     TODO
+    - When does the homing procedure actually need to be run?
     - Add recording of last mounted sample
     - Add recording of last message sent
     - Add state machine to allow recovery if software crashes
@@ -39,6 +40,12 @@ class Robot():
         self.config_file = config_file
 
     def __read_config__(self):
+        '''
+        Read the configuration for the socket from the configuration file given
+        to the robot at initialisation. Currently only the hostname/IP address
+        and the port are read from the config_file. See example_config.ini to
+        see the structure of the config.
+        '''
         if not os.path.exists(self.config_file):
             raise(FileNotFoundError('Cannot find E.M.A. API config file: {}'
                                     .format(self.config_file)))
@@ -52,6 +59,11 @@ class Robot():
             raise ValueError('Expecting value greater than 0')
 
     def connect(self):
+        '''
+        Connect a socket to the robot controller
+
+        Creates a socket based on the configuration taken from the config_file.
+        '''
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if (self.address is None) or (self.port is None):
             self.__read_config__()
@@ -59,12 +71,30 @@ class Robot():
         self.connected = True
 
     def disconnect(self):
+        '''
+        Disconnect active socket (if one exists)
+        '''
+        if not self.connected:
+            print('Not connected. Cannot disconnect.')
+            return
         self.sock.shutdown(socket.SHUT_RDWR)
         self.sock.close()
         self.connected = False
 
     def send(self, message, wait_for=None):
-        self.sock.send(message.encode())
+        '''
+        Send a message to the robot controller and wait for a response if
+        needed
+
+        Messages should correspond to commands in the comm module in the
+        VAL3 code.
+
+        Parameters
+        ----------
+        message : String message to send to the controller
+        wait_for : String message to wait for the controller to send back
+        '''
+        self.sock.send(str(message).encode())
         if wait_for:
             msg_len = len(wait_for.encode())
             recv_msg = ''
@@ -73,6 +103,9 @@ class Robot():
                 recv_msg = self.sock.recv(msg_len)
 
     def set_homed(self):
+        '''
+        Perform the robot's homing procedure
+        '''
         print('Robot is not homed. Performing homing procedure... ', end='')
         self.send('gate', wait_for='moveGate:done')
         self.send('homing', wait_for='homing:done')
