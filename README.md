@@ -1,6 +1,6 @@
 # EMAControl
 
-[![Build Status](https://travis-ci.com/mtwharmby/emacontrol.svg?branch=master)](https://travis-ci.com/mtwharmby/emacontrol)
+[![Build Status](https://travis-ci.com/DESY-P02-1/emacontrol.svg)](https://travis-ci.com/DESY-P02-1/emacontrol)
 
 EMAControl provides a user interface with which to control the robotic sample changer available at beameline P02.1.
 
