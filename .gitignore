@@ -107,3 +107,6 @@ ENV/
 
 # Vi/Vim editing
 *~
+
+# VSCode
+.vscode/
