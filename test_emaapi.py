@@ -1,13 +1,17 @@
 import os
 import socket
-
-from pathlib import Path  # This might not work on Deb 9
+import sys
 
 import pytest
 from mock import call, Mock, patch
 
 from emaapi import robot_begin, robot_end, mount_sample, unmount_sample, Robot
 
+pathlib_path = False  # As this doesn't work with python < 3.6
+if sys.version_info[0] >= 3:
+    if sys.version_info[1] > 5:
+        from pathlib import Path
+        pathlib_path = True
 
 # These tests are for the  basic start-up/shutdown methods
 @patch('emaapi.ema')
@@ -37,7 +41,11 @@ def test_init():
     assert ema.connected is False
     assert ema.address is None
     assert ema.port is None
-    assert ema.config_file == os.path.join(Path.home(), '.robot.ini')
+    if pathlib_path:
+        home_dir = Path.home()
+    else:
+        home_dir = os.path.expanduser('~')
+    assert ema.config_file == os.path.join(home_dir, '.robot.ini')
     assert ema.sock is None
 
 
