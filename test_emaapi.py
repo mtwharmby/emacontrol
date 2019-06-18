@@ -15,7 +15,7 @@ def test_start(ema_mock):
     with patch('builtins.input'):
         robot_begin()
     assert ema_mock.mock_calls == [call.connect(),
-                                   call.send('powerOn', 
+                                   call.send('powerOn',
                                              wait_for='enablePower:done')
                                    ]
 
