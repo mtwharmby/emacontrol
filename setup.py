@@ -63,11 +63,11 @@ setup(
     # packages=find_packages(exclude=('tests',)),
     # If your package is a single module, use this instead of 'packages':
     py_modules=['emaapi'],
-# We don't want emaapi to be run as a script - it should be imported!
-# So there is no entry in entry_points    
-#     entry_points={
-#         'console_scripts': ['emacontrol=emacontrol:main'],
-#     },
+    # # We don't want emaapi to be run as a script - it should be imported!
+    # # So there is no entry in entry_points
+    # entry_points={
+    #     'console_scripts': ['emacontrol=emacontrol:main'],
+    # },
     install_requires=REQUIRED,
     extras_require=EXTRAS,
     include_package_data=True,
