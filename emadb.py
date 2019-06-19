@@ -36,7 +36,6 @@ def get_session_id_for_today(conn, delta=1):
     result = __sql_query__(conn, ("""SELECT * FROM Sessions"""))
     for row in result:
         session_date = datetime.strptime(row[1], "%Y-%m-%d %H:%M:%S.%f").date()
-        print(session_date)
         date_diff = abs(session_date - today)
         if date_diff <= timedelta(days=delta):
             return row[0]
@@ -90,6 +89,8 @@ def get_samples_for_appid(conn, measurement, app_id):
     ------
     KeyError : if measurement type other than 'PXRD' or 'PDF' is requested
     """
+    # This could be done without using the PXRD_Samples/PDF_Samples views.
+    # That might make the measurement selection a little cleaner
     measurement_sql = {'PXRD': """SELECT holder_position,user_sample_name FROM
                                   PXRD_Samples WHERE application_id=?""",
                        'PDF': """SELECT holder_position,user_sample_name FROM
@@ -101,3 +102,11 @@ def get_samples_for_appid(conn, measurement, app_id):
     for row in result:
         samples[row[0]] = row[1]
     return samples
+
+
+""" TODO
+    function: get samples for session - measurement, session_id(opt)
+    get appids
+    for appids get samples (for measurement)
+    restructure & return
+"""
