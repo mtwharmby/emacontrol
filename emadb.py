@@ -4,6 +4,14 @@ import sqlite3
 
 def __sql_query__(conn, sql):
     pass
+    """ TODO
+        conn = sqlite3.connect(dbfile)
+        cur = conn.cursor()
+        cur.execute(SQL)
+        return cur.fetchall()
+        See:
+        http://www.sqlitetutorial.net/sqlite-python/sqlite-python-select/
+    """
 
 
 def get_session_id_for_today(conn, delta=1):
