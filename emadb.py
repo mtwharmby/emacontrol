@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import sqlite3
 
 
@@ -5,8 +6,35 @@ def __sql_query__(conn, sql):
     pass
 
 
-def get_session_id_for_today(conn):
-    pass
+def get_session_id_for_today(conn, delta=1):
+    """
+    Determine the ID of session within delta days of today
+
+    Parameters
+    ----------
+    conn : a connection to an SQLite database
+    delta : (optional) integer number of days difference between today and a 
+            session date
+
+    Returns
+    -------
+    integer : id of session
+
+    Raises
+    ------
+    Exception : if no session in the database within delta days
+    """
+    today = datetime.now().date()
+    result = __sql_query__(conn, ("""SELECT * FROM Sessions"""))
+    for row in result:
+        session_date = datetime.strptime(row[1], "%Y-%m-%d %H:%M:%S.%f").date()
+        print(session_date)
+        date_diff = abs(session_date - today)
+        if date_diff <= timedelta(days=delta):
+            return row[0]
+    raise Exception(
+        'No session with a date less than {} day before/aftertoday'
+        .format(delta))
 
 
 def get_appids_for_session(conn, session_id=None):
