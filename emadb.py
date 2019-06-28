@@ -132,13 +132,13 @@ def get_samples_for_appid(db_connector, measurement, app_id):
     """
     # This could be done without using the PXRD_Samples/PDF_Samples views.
     # That might make the measurement selection a little cleaner
-    measurement_sql = {'PXRD':
-                       """SELECT holder_position,user_sample_name FROM
-                       PXRD_Samples WHERE application_id=?""",
-                       'PDF':
-                       """SELECT holder_position,user_sample_name FROM
-                       PDF_Samples WHERE application_id=?""",
-                       }
+    measurement_sql = {
+        'PXRD':
+        """SELECT holder_position,user_sample_name FROM PXRD_Samples WHERE
+           application_id=?""",
+        'PDF':
+        """SELECT holder_position,user_sample_name FROM PDF_Samples WHERE
+           application_id=?"""}
 
     samples = {}
     result = db_connector.query_rows(measurement_sql[measurement], (app_id,))
