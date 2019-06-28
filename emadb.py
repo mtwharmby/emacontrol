@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 
 class SQLiteConnector():
@@ -72,7 +72,7 @@ def get_session_id_for_today(db_connector, delta=1):
     ------
     Exception : if no session in the database within delta days
     """
-    today = datetime.now().date()
+    today = date.today()
     result = db_connector.query_rows("""SELECT * FROM Sessions""")
     for row in result:
         session_date = datetime.strptime(row[1], "%Y-%m-%d %H:%M:%S.%f").date()

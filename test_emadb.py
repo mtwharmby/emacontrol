@@ -4,7 +4,7 @@ Output needs to be a dictionary of application_IDs, each with a dictionary of sa
 To do this, get list of applications from DB - based on session (this determined from date?)
 Then get list of all samples in table with that app_ID - which table?
 """
-from datetime import datetime
+from datetime import date, datetime
 
 import pytest
 from mock import patch, Mock
@@ -13,10 +13,14 @@ from emadb import (get_appids_for_session, get_samples_for_appid,
                    get_session_id_for_today)
 
 
-@patch('datetime.datetime')
+@patch('datetime.date')
 def test_get_session_id_for_today(dt_mock):
     dbconn_mock = Mock()
-    dt_mock.now().return_value = datetime(2019, 6, 19)
+    # Mocking datetime.today() is complicated as it's a built-in C function
+    # Explanation of how in Mock docs:
+    # https://docs.python.org/3/library/unittest.mock-examples.html#partial-mocking
+    dt_mock.today.return_value = datetime(2019, 6, 19)
+    dt_mock.side_effect = lambda *args, **kw: date(*args, **kw)
 
     with patch('emadb.SQLiteConnector.query_rows') as sql_mock:
         sql_mock.return_value = [(1, '2019-06-19 09:00:00.000'),
