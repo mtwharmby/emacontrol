@@ -18,7 +18,7 @@ def test_get_session_id_for_today(dt_mock):
     dbconn_mock = Mock()
     dt_mock.now().return_value = datetime(2019, 6, 19)
 
-    with patch('emadb.__sql_query__') as sql_mock:
+    with patch('emadb.SQLiteConnector.query_rows') as sql_mock:
         sql_mock.return_value = [(1, '2019-06-19 09:00:00.000'),
                                  (2, '2019-07-14 09:00:00.000')]
 
@@ -36,7 +36,7 @@ def test_get_session_id_for_today(dt_mock):
 def test_get_appids_for_session():
     dbconn_mock = Mock()
 
-    with patch('emadb.__sql_query__') as sql_mock:
+    with patch('emadb.SQLiteConnector.query_rows') as sql_mock:
         sql_mock.return_value = [(120,), (522,), (742,)]
 
         app_ids = get_appids_for_session(dbconn_mock, session_id=1)
@@ -48,7 +48,7 @@ def test_get_appids_for_session():
 def test_get_samples_for_appid():
     dbconn_mock = Mock()
 
-    with patch('emadb.__sql_query__') as sql_mock:
+    with patch('emadb.SQLiteConnector.query_rows') as sql_mock:
         sql_mock.return_value = [(1, 'sample A',), (2, 'sample Q')]
 
         # Check getting PXRD samples...
