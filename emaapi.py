@@ -154,7 +154,9 @@ class Robot():
         n = __input_to_int__(n)
         if n <= 0:
             raise ValueError('Expecting value greater than 0')
-        return (n // 10 + 1, n % 10)
+        coordinates = (((n - 1) // 10 + 1), ((n - 1) % 10 + 1))
+        assert (0 not in coordinates), '{} are not valid coordinates (contains 0)'.format(coordinates)
+        return coordinates
 
 
 def __input_to_int__(value):
