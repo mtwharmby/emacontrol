@@ -54,14 +54,16 @@ class SQLiteConnector():
         self.connection.close()
 
 
-def get_session_id_for_today(db_connector, delta=1):
+def get_session_id(db_connector, when=date.today(), delta=1):
     """
-    Determine the ID of session within delta days of today
+    Determine the ID of session within delta days of a given date ('when'). If
+    no date is given, today is assumed.
 
     Parameters
     ----------
     db_connector : object to manage database connections
-    delta : (optional) integer number of days difference between today and a
+    when : (optional) date object indicating the date of the session
+    delta : (optional) integer number of days difference between when and a
             session date
 
     Returns
@@ -72,16 +74,16 @@ def get_session_id_for_today(db_connector, delta=1):
     ------
     Exception : if no session in the database within delta days
     """
-    today = date.today()
+    when = date.today()
     result = db_connector.query_rows("""SELECT * FROM Sessions""")
     for row in result:
         session_date = datetime.strptime(row[1], "%Y-%m-%d %H:%M:%S.%f").date()
-        date_diff = abs(session_date - today)
+        date_diff = abs(session_date - when)
         if date_diff <= timedelta(days=delta):
             return row[0]
     raise Exception(
-        'No session with a date less than {} day before/aftertoday'
-        .format(delta))
+        'No session with a date less than {0} day before/after {1}.{2}.{3}'
+        .format(delta, when.day, when.month, when.year))
 
 
 def get_appids_for_session(db_connector, session_id=None):
@@ -99,7 +101,7 @@ def get_appids_for_session(db_connector, session_id=None):
     list : integers representing the application IDs
     """
     if session_id is None:
-        session_id = get_session_id_for_today(db_connector)
+        session_id = get_session_id(db_connector)
 
     app_ids = []
     result = db_connector.query_rows(

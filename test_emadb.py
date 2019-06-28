@@ -10,11 +10,11 @@ import pytest
 from mock import patch
 
 from emadb import (get_appids_for_session, get_samples_for_appid,
-                   get_session_id_for_today)
+                   get_session_id)
 
 
 @patch('emadb.date')
-def test_get_session_id_for_today(dt_mock):
+def test_get_session_id(dt_mock):
     # Mocking datetime.today() is special as it's a built-in C function
     # Explanation of how to do this in Mock docs:
     # https://docs.python.org/3/library/unittest.mock-examples.html#partial-mocking
@@ -26,7 +26,7 @@ def test_get_session_id_for_today(dt_mock):
         sql_mock.query_rows.return_value = [(1, '2019-06-19 09:00:00.000'),
                                             (2, '2019-07-14 09:00:00.000')]
 
-        session_id = get_session_id_for_today(sql_mock)
+        session_id = get_session_id(sql_mock)
         assert session_id == 1
 
         with pytest.raises(Exception,
@@ -34,7 +34,7 @@ def test_get_session_id_for_today(dt_mock):
             sql_mock.query_rows.return_value = [(1, '1019-06-19 09:00:00.000'),
                                                 (2, '1019-07-14 09:00:00.000')]
 
-            session_id = get_session_id_for_today(sql_mock)
+            session_id = get_session_id(sql_mock)
 
 
 def test_get_appids_for_session():
