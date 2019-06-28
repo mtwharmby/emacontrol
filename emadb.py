@@ -149,9 +149,26 @@ def get_samples_for_appid(db_connector, measurement, app_id):
     return samples
 
 
-""" TODO
-    function: get samples for session - measurement, session_id(opt)
-    get appids
-    for appids get samples (for measurement)
-    restructure & return
-"""
+def get_samples_for_measurement_for_session(db_connector, measurement,
+                                            session_id=None):
+    """
+    Gets the complete list of samples for given session, grouping them with
+    respect to their application IDs.
+
+    Parameters
+    ----------
+    db_connector : a connection to an SQLite database
+    measurement : String label for measurement type (e.g. PXRD or PDF)
+    session_id : (optional) integer representing a given session. If not given,
+                 session_id is determined using get_session_id()
+    """
+    # TODO We should have a separate list which contains the running order so
+    #      we can run the same position multiple times
+    if session_id is None:
+        session_id = get_session_id()
+
+    app_ids = get_appids_for_session(db_connector, session_id)
+    all_samples = {}
+    for id in app_ids:
+        all_samples[id] = get_samples_for_appid(db_connector, measurement, id)
+    return all_samples

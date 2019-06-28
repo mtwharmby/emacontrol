@@ -7,10 +7,10 @@ Then get list of all samples in table with that app_ID - which table?
 from datetime import date
 
 import pytest
-from mock import patch
+from mock import Mock, patch
 
 from emadb import (get_appids_for_session, get_samples_for_appid,
-                   get_session_id)
+                   get_session_id, get_samples_for_measurement_for_session)
 
 
 @patch('emadb.date')
@@ -74,3 +74,26 @@ def test_get_samples_for_appid():
         # ... this should throw an error
         with pytest.raises(KeyError, match=r"LightScattering"):
             samples = get_samples_for_appid(sql_mock, 'LightScattering', 120)
+
+
+@patch('emadb.get_session_id')
+def test_get_samples_for_measurement_for_session(sessid_mock):
+    sql_mock = Mock('DB Connector')
+    sessid_mock.return_value = 1
+
+    with patch('emadb.get_appids_for_session') as appids_mock:
+        with patch('exmadb.get_samples_for_appid') as samples_mock:
+            appids_mock.return_value = [120, 522, 742]
+            samples_mock.side_effect = [
+                {1: 'sample A', 2: 'sample Q'},
+                {4: 'badger', 8: 'cupcake'},
+                {10: 'MTW656', 53: 'MTW754'}
+            ]
+
+            all_samples = get_samples_for_measurement_for_session(sql_mock, 
+                                                                  'PXRD')
+            assert all_samples == {
+                120: {1: 'sample A', 2: 'sample Q'},
+                522: {4: 'badger', 8: 'cupcake'},
+                742: {10: 'MTW656', 53: 'MTW754'}
+            }
