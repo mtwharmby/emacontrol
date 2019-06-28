@@ -94,7 +94,7 @@ def get_appids_for_session(db_connector, session_id=None):
     ----------
     db_connector : object to manage database connections
     session_id : (optional) integer representing a given session. If not given,
-                 session_id is determined using get_session_id_for_today()
+                 session_id is determined using get_session_id()
 
     Returns
     -------
@@ -119,7 +119,7 @@ def get_samples_for_appid(db_connector, measurement, app_id):
 
     Parameters
     ----------
-    conn : a connection to an SQLite database
+    db_connector : a connection to an SQLite database
     measurement : string, either PXRD or PDF
     app_id : integer representing application ID
 
