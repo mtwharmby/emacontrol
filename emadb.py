@@ -6,7 +6,7 @@ class SQLiteConnector():
     """
     This connector provides all the database connectivity to an SQLite
     database. The pattern is based on the idea suggested in
-    https://softwareengineering.stackexchange.com/questions/200522/how-to-deal-with-database-connections-in-a-python-library-module 
+    https://softwareengineering.stackexchange.com/questions/200522/how-to-deal-with-database-connections-in-a-python-library-module
     by "Travis"
     """
 
@@ -61,7 +61,7 @@ def get_session_id_for_today(db_connector, delta=1):
     Parameters
     ----------
     db_connector : object to manage database connections
-    delta : (optional) integer number of days difference between today and a 
+    delta : (optional) integer number of days difference between today and a
             session date
 
     Returns
