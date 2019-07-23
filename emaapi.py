@@ -113,7 +113,8 @@ class Robot():
         '''
         Perform the robot's homing procedure
         '''
-        print('Robot is not homed. Performing homing procedure... ', end='')
+        print('Robot is not homed. Performing homing procedure... ', end='',
+              flush=True)
         self.send('gate', wait_for='moveGate:done')
         self.send('homing', wait_for='homing:done')
         self.homed = True
@@ -194,7 +195,7 @@ def robot_begin():
     # TODO Ideally this would check the interlock programmatically. But this
     # isn't an option yet.
     input('Have you pressed the reset button?\nPress enter to continue...')
-    print('Starting E.M.A. sample changer... ', end='')
+    print('Starting E.M.A. sample changer... ', end='', flush=True)
     ema.connect()
     ema.send('powerOn', wait_for='enablePower:done')
     print('Done')
@@ -205,7 +206,7 @@ def robot_end():
     Function to call at the end of a sample exchanging run. Turns power off to
     the robot and then closes the socket connection.
     """
-    print('Powering off E.M.A. sample changer... ', end='')
+    print('Powering off E.M.A. sample changer... ', end='', flush=True)
     ema.send('powerOff')
     ema.disconnect()
     print('Done')
@@ -229,7 +230,7 @@ def mount_sample(n):
     ema.set_sample_coords(n)
     if not ema.homed:
         ema.set_homed()
-    print('Mounting sample {}... '.format(n), end='')
+    print('Mounting sample {}... '.format(n), end='', flush=True)
 
     # Actually do the movements
     ema.send('next', wait_for='moveNext:done')
@@ -251,8 +252,7 @@ def unmount_sample():
     -> go to gate -> go to sample on board -> release sample
     """
     if not ema.connected:
-        raise Exception('Robot not connected. Did you run the start() method?')
-    print('Unmounting sample... ', end='')
+    print('Unmounting sample... ', end='', flush=True)
     ema.send('spinner', wait_for='moveSpinner:done')
     ema.send('pick', wait_for='pickSample:done')
     ema.send('gate', wait_for='moveGate:done')
