@@ -163,7 +163,8 @@ class Robot():
         if n <= 0:
             raise ValueError('Expecting value greater than 0')
         coordinates = (((n - 1) // 10 + 1), ((n - 1) % 10 + 1))
-        assert (0 not in coordinates), '{} are not valid coordinates (contains 0)'.format(coordinates)
+        assert (0 not in coordinates), \
+            '{} are not valid coordinates (contains 0)'.format(coordinates)
         return coordinates
 
 
