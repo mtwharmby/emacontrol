@@ -64,9 +64,13 @@ class Robot():
 
         Creates a socket based on the configuration taken from the config_file.
         '''
-        if self.connected:  # TODO check socket is not closed?
-            print("Socket is already connected...")
-            return
+        if self.connected:
+            if self.sock.fileno == -1:
+                # Socket is disconnected or failed, so it's safe to reconnect
+                self.connected = False
+            else:
+                print("Socket is already connected...")
+                return
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if (self.address is None) or (self.port is None):
             self.__read_config__()
