@@ -119,10 +119,16 @@ def test_send(sock_mock, monkeypatch):
 
 # Method supports set_sample_coords
 def test_sample_to_coords():
-    assert (2, 2) == Robot.samplenr_to_xy(12)
-    assert (6, 3) == Robot.samplenr_to_xy(53)
-    assert (22, 7) == Robot.samplenr_to_xy(217)
-    assert (1, 2) == Robot.samplenr_to_xy(2)
+
+    def mario_sam(n):
+        '''
+        Creates a tuple containing x & y coord calculated as per Mario's 
+        original script
+        '''
+        return (int(((n - 1) / 10) + 1), int(((n - 1) % 10) + 1))
+
+    for pos in list(range(1, 301)):
+        assert mario_sam(pos) == Robot.samplenr_to_xy(pos)
 
     with pytest.raises(ValueError, match=r".*greater than 0"):
         Robot.samplenr_to_xy(0)
