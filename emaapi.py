@@ -64,6 +64,13 @@ class Robot():
 
         Creates a socket based on the configuration taken from the config_file.
         '''
+        if self.connected:
+            if self.sock.fileno == -1:
+                # Socket is disconnected or failed, so it's safe to reconnect
+                self.connected = False
+            else:
+                print("Socket is already connected...")
+                return
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if (self.address is None) or (self.port is None):
             self.__read_config__()
@@ -106,13 +113,14 @@ class Robot():
         '''
         Perform the robot's homing procedure
         '''
-        print('Robot is not homed. Performing homing procedure... ', end='')
+        print('Robot is not homed. Performing homing procedure... ', end='',
+              flush=True)
         self.send('gate', wait_for='moveGate:done')
         self.send('homing', wait_for='homing:done')
         self.homed = True
         print('Homing done')
 
-    def set_sample_coords(self, n):
+    def set_sample_coords(self, n, verbose=False):
         """
         Sets the xy coordinates for the next sample to mount based on the index
         of that sample. Sends these coordinates to the robot controller.
@@ -120,9 +128,12 @@ class Robot():
         Parameters
         ----------
         n : integer index of the sample to pick
+        verbose : boolean if true prints the sample coordinates to screen
         """
         self.sample_index = n
         self.x_coord, self.y_coord = Robot.samplenr_to_xy(n)
+        if verbose:
+            print('Sample coords: ({}, {})'.format(self.x_coord, self.y_coord))
         self.send('setAxis#X{0:d}#Y{1:d}'.format(self.x_coord, self.y_coord),
                   wait_for='setAxis:done')
 
@@ -151,7 +162,10 @@ class Robot():
         n = __input_to_int__(n)
         if n <= 0:
             raise ValueError('Expecting value greater than 0')
-        return (n // 10 + 1, n % 10)
+        coordinates = (((n - 1) // 10 + 1), ((n - 1) % 10 + 1))
+        assert (0 not in coordinates), \
+            '{} are not valid coordinates (contains 0)'.format(coordinates)
+        return coordinates
 
 
 def __input_to_int__(value):
@@ -185,7 +199,7 @@ def robot_begin():
     # TODO Ideally this would check the interlock programmatically. But this
     # isn't an option yet.
     input('Have you pressed the reset button?\nPress enter to continue...')
-    print('Starting E.M.A. sample changer... ', end='')
+    print('Starting E.M.A. sample changer... ', end='', flush=True)
     ema.connect()
     ema.send('powerOn', wait_for='enablePower:done')
     print('Done')
@@ -196,13 +210,13 @@ def robot_end():
     Function to call at the end of a sample exchanging run. Turns power off to
     the robot and then closes the socket connection.
     """
-    print('Powering off E.M.A. sample changer... ', end='')
+    print('Powering off E.M.A. sample changer... ', end='', flush=True)
     ema.send('powerOff')
     ema.disconnect()
     print('Done')
 
 
-def mount_sample(n):
+def mount_sample(n, verbose=False):
     """
     Mount a sample with the requested index on the sample spinner.
 
@@ -216,11 +230,12 @@ def mount_sample(n):
     n : integer index of the sample to be mounted
     """
     if not ema.connected:
-        raise Exception('Robot not connected. Did you run the start() method?')
-    ema.set_sample_coords(n)
+        msg = 'Robot not connected. Did you run the robot_begin() method?'
+        raise Exception(msg)
+    ema.set_sample_coords(n, verbose=verbose)
     if not ema.homed:
         ema.set_homed()
-    print('Mounting sample {}... '.format(n), end='')
+    print('Mounting sample {}... '.format(n), end='', flush=True)
 
     # Actually do the movements
     ema.send('next', wait_for='moveNext:done')
@@ -242,8 +257,9 @@ def unmount_sample():
     -> go to gate -> go to sample on board -> release sample
     """
     if not ema.connected:
-        raise Exception('Robot not connected. Did you run the start() method?')
-    print('Unmounting sample... ', end='')
+        msg = 'Robot not connected. Did you run the robot_begin() method?'
+        raise Exception(msg)
+    print('Unmounting sample... ', end='', flush=True)
     ema.send('spinner', wait_for='moveSpinner:done')
     ema.send('pick', wait_for='pickSample:done')
     ema.send('gate', wait_for='moveGate:done')
