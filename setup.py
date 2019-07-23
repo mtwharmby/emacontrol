@@ -12,7 +12,7 @@ URL = 'https://github.com/mtwharmby/emacontrol'
 EMAIL = 'michael.wharmby@desy.de'
 AUTHOR = 'Michael Wharmby'
 REQUIRES_PYTHON = '>=3.5.0'
-VERSION = '0.0.1-pre'
+VERSION = '1.1.0'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
