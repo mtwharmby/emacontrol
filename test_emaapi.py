@@ -121,10 +121,10 @@ def test_send(sock_mock, monkeypatch):
 def test_sample_to_coords():
 
     def mario_sam(n):
-        '''
+        """
         Creates a tuple containing x & y coord calculated as per Mario's 
         original script
-        '''
+        """
         return (int(((n - 1) / 10) + 1), int(((n - 1) % 10) + 1))
 
     for pos in list(range(1, 301)):
@@ -147,9 +147,9 @@ def test_mount_sample(ema_mock):
     ema_mock.set_homed = homed_mock
     ema_mock.send = send_mock
 
-    mount_sample(75)
+    mount_sample(75,)
     # Preparation for mounting...
-    samcoords_mock.assert_called_with(75)
+    samcoords_mock.assert_called_with(75, verbose=False)
     homed_mock.assert_called_once()
     # ... and the actual process:
     send_calls = [call('next', wait_for='moveNext:done'),
@@ -162,7 +162,7 @@ def test_mount_sample(ema_mock):
     send_mock.assert_has_calls(send_calls)
 
     ema_mock.connected = False
-    with pytest.raises(Exception, match=r".*Did you run the start.*"):
+    with pytest.raises(Exception, match=r".*Did you run the robot_begin.*"):
         mount_sample(75)
 
 
@@ -179,5 +179,5 @@ def test_unmount_sample(ema_mock):
     ema_mock.assert_has_calls(send_calls)
 
     ema_mock.connected = False
-    with pytest.raises(Exception, match=r".*Did you run the start.*"):
+    with pytest.raises(Exception, match=r".*Did you run the robot_begin.*"):
         unmount_sample()
