@@ -120,7 +120,7 @@ class Robot():
         self.homed = True
         print('Homing done')
 
-    def set_sample_coords(self, n):
+    def set_sample_coords(self, n, verbose=False):
         """
         Sets the xy coordinates for the next sample to mount based on the index
         of that sample. Sends these coordinates to the robot controller.
@@ -128,9 +128,12 @@ class Robot():
         Parameters
         ----------
         n : integer index of the sample to pick
+        verbose : boolean if true prints the sample coordinates to screen
         """
         self.sample_index = n
         self.x_coord, self.y_coord = Robot.samplenr_to_xy(n)
+        if verbose:
+            print('Sample coords: ({}, {})'.format(self.x_coord, self.y_coord))
         self.send('setAxis#X{0:d}#Y{1:d}'.format(self.x_coord, self.y_coord),
                   wait_for='setAxis:done')
 
@@ -212,7 +215,7 @@ def robot_end():
     print('Done')
 
 
-def mount_sample(n):
+def mount_sample(n, verbose=False):
     """
     Mount a sample with the requested index on the sample spinner.
 
@@ -228,6 +231,7 @@ def mount_sample(n):
     if not ema.connected:
         msg = 'Robot not connected. Did you run the robot_begin() method?'
         raise Exception(msg)
+    ema.set_sample_coords(n, verbose=verbose)
     if not ema.homed:
         ema.set_homed()
     print('Mounting sample {}... '.format(n), end='', flush=True)
