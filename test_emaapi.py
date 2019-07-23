@@ -122,7 +122,7 @@ def test_sample_to_coords():
 
     def mario_sam(n):
         """
-        Creates a tuple containing x & y coord calculated as per Mario's 
+        Creates a tuple containing x & y coord calculated as per Mario's
         original script
         """
         return (int(((n - 1) / 10) + 1), int(((n - 1) % 10) + 1))
