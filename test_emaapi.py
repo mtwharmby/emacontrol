@@ -68,7 +68,7 @@ def test_set_sample_coords(conf_mock):
     with patch('emaapi.Robot.send') as send_mock:
         ema = Robot()
         ema.set_sample_coords(75)
-        send_mock.assert_called_with('setAxis#X8#Y5;', wait_for='setAxis:done;')
+        send_mock.assert_called_with('setAxis:#X7#Y4;', wait_for='setAxis:done;')
 
 
 def test_read_config():
@@ -121,15 +121,17 @@ def test_send(sock_mock, monkeypatch):
 # Method supports set_sample_coords
 def test_sample_to_coords():
 
-    def mario_sam(n):
-        """
-        Creates a tuple containing x & y coord calculated as per Mario's
-        original script
-        """
-        return (int(((n - 1) / 10) + 1), int(((n - 1) % 10) + 1))
+    # Some specific examples of coords calculated...
+    assert (0, 0) == Robot.samplenr_to_xy(1)
+    assert (0, 1) == Robot.samplenr_to_xy(2)
+    assert (1, 0) == Robot.samplenr_to_xy(11)
 
-    for pos in list(range(1, 301)):
-        assert mario_sam(pos) == Robot.samplenr_to_xy(pos)
+    # ...and all values for 300 samples
+    n = 1
+    for i in range(0, 30):
+        for j in range(0, 10):
+            assert (i, j) == Robot.samplenr_to_xy(n)
+            n += 1
 
     with pytest.raises(ValueError, match=r".*greater than 0"):
         Robot.samplenr_to_xy(0)

@@ -134,7 +134,7 @@ class Robot():
         self.x_coord, self.y_coord = Robot.samplenr_to_xy(n)
         if verbose:
             print('Sample coords: ({}, {})'.format(self.x_coord, self.y_coord))
-        self.send('setAxis#X{0:d}#Y{1:d};'.format(self.x_coord, self.y_coord),
+        self.send('setAxis:#X{0:d}#Y{1:d};'.format(self.x_coord, self.y_coord),
                   wait_for='setAxis:done;')
 
     @staticmethod
@@ -156,15 +156,14 @@ class Robot():
         ------
         ValueError : if n is not greater than 0
         """
-        # In the original code this was expressed as:
-        # x=((n-1)/10)+1
-        # y=((n-1)%10)+1
         n = __input_to_int__(n)
         if n <= 0:
             raise ValueError('Expecting value greater than 0')
-        coordinates = (((n - 1) // 10 + 1), ((n - 1) % 10 + 1))
-        assert (0 not in coordinates), \
-            '{} are not valid coordinates (contains 0)'.format(coordinates)
+        # "Sample 1" is actually at position (0, 0). To make calculation
+        # easier, subtract 1 (i.e. "Sample 1" = "Sample 0"). We use "Sample 1"
+        # as this is easier to understand for users.
+        n = n - 1
+        coordinates = (n // 10, n % 10)
         return coordinates
 
 
