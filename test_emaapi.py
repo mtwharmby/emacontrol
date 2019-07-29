@@ -15,19 +15,20 @@ if sys.version_info[0] >= 3:
 
 # These tests are for the  basic start-up/shutdown methods
 @patch('emaapi.ema')
-def test_start(ema_mock):
+def test_robot_begin(ema_mock):
     with patch('builtins.input'):
         robot_begin()
     assert ema_mock.mock_calls == [call.connect(),
-                                   call.send('powerOn',
-                                             wait_for='enablePower:done')
+                                   call.send('powerOn;',
+                                             wait_for='powerOn:done;')
                                    ]
 
 
 @patch('emaapi.ema')
-def test_stop(ema_mock):
+def test_robot_end(ema_mock):
     robot_end()
-    assert ema_mock.mock_calls == [call.send('powerOff'),
+    assert ema_mock.mock_calls == [call.send('powerOff;',
+                                             wait_for='powerOff:done;'),
                                    call.disconnect()]
 
 
@@ -56,8 +57,8 @@ def test_set_homed(conf_mock):
         assert ema.homed is False
         ema.set_homed()
         assert ema.homed is True
-        send_calls = [call('gate', wait_for='moveGate:done'),
-                      call('homing', wait_for='homing:done')
+        send_calls = [call('gate;', wait_for='moveGate:done;'),
+                      call('homing;', wait_for='homing:done;')
                       ]
         send_mock.assert_has_calls(send_calls)
 
@@ -67,7 +68,7 @@ def test_set_sample_coords(conf_mock):
     with patch('emaapi.Robot.send') as send_mock:
         ema = Robot()
         ema.set_sample_coords(75)
-        send_mock.assert_called_with('setAxis#X8#Y5', wait_for='setAxis:done')
+        send_mock.assert_called_with('setAxis#X8#Y5;', wait_for='setAxis:done;')
 
 
 def test_read_config():
@@ -152,12 +153,12 @@ def test_mount_sample(ema_mock):
     samcoords_mock.assert_called_with(75, verbose=False)
     homed_mock.assert_called_once()
     # ... and the actual process:
-    send_calls = [call('next', wait_for='moveNext:done'),
-                  call('pick', wait_for='pickSample:done'),
-                  call('gate', wait_for='moveGate:done'),
-                  call('spinner', wait_for='moveSpinner:done'),
-                  call('release', wait_for='releaseSample:done'),
-                  call('offside', wait_for='moveOffside:done')
+    send_calls = [call('next;', wait_for='moveNext:done;'),
+                  call('pick;', wait_for='pickSample:done;'),
+                  call('gate;', wait_for='moveGate:done;'),
+                  call('spinner;', wait_for='moveSpinner:done;'),
+                  call('release;', wait_for='releaseSample:done;'),
+                  call('offside;', wait_for='moveOffside:done;')
                   ]
     send_mock.assert_has_calls(send_calls)
 
@@ -170,11 +171,11 @@ def test_mount_sample(ema_mock):
 def test_unmount_sample(ema_mock):
     ema_mock.connected = True
     unmount_sample()
-    send_calls = [call.send('spinner', wait_for='moveSpinner:done'),
-                  call.send('pick', wait_for='pickSample:done'),
-                  call.send('gate', wait_for='moveGate:done'),
-                  call.send('current', wait_for='returnCurrent:done'),
-                  call.send('release', wait_for='releaseSample:done')
+    send_calls = [call.send('spinner;', wait_for='moveSpinner:done;'),
+                  call.send('pick;', wait_for='pickSample:done;'),
+                  call.send('gate;', wait_for='moveGate:done;'),
+                  call.send('current;', wait_for='returnCurrent:done;'),
+                  call.send('release;', wait_for='releaseSample:done;')
                   ]
     ema_mock.assert_has_calls(send_calls)
 

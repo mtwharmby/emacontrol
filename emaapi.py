@@ -115,8 +115,8 @@ class Robot():
         '''
         print('Robot is not homed. Performing homing procedure... ', end='',
               flush=True)
-        self.send('gate', wait_for='moveGate:done')
-        self.send('homing', wait_for='homing:done')
+        self.send('gate;', wait_for='moveGate:done;')
+        self.send('homing;', wait_for='homing:done;')
         self.homed = True
         print('Homing done')
 
@@ -134,8 +134,8 @@ class Robot():
         self.x_coord, self.y_coord = Robot.samplenr_to_xy(n)
         if verbose:
             print('Sample coords: ({}, {})'.format(self.x_coord, self.y_coord))
-        self.send('setAxis#X{0:d}#Y{1:d}'.format(self.x_coord, self.y_coord),
-                  wait_for='setAxis:done')
+        self.send('setAxis#X{0:d}#Y{1:d};'.format(self.x_coord, self.y_coord),
+                  wait_for='setAxis:done;')
 
     @staticmethod
     def samplenr_to_xy(n):
@@ -201,7 +201,7 @@ def robot_begin():
     input('Have you pressed the reset button?\nPress enter to continue...')
     print('Starting E.M.A. sample changer... ', end='', flush=True)
     ema.connect()
-    ema.send('powerOn', wait_for='enablePower:done')
+    ema.send('powerOn;', wait_for='powerOn:done;')
     print('Done')
 
 
@@ -211,7 +211,7 @@ def robot_end():
     the robot and then closes the socket connection.
     """
     print('Powering off E.M.A. sample changer... ', end='', flush=True)
-    ema.send('powerOff')
+    ema.send('powerOff;', wait_for='powerOff:done;')
     ema.disconnect()
     print('Done')
 
@@ -238,12 +238,12 @@ def mount_sample(n, verbose=False):
     print('Mounting sample {}... '.format(n), end='', flush=True)
 
     # Actually do the movements
-    ema.send('next', wait_for='moveNext:done')
-    ema.send('pick', wait_for='pickSample:done')
-    ema.send('gate', wait_for='moveGate:done')
-    ema.send('spinner', wait_for='moveSpinner:done')
-    ema.send('release', wait_for='releaseSample:done')
-    ema.send('offside', wait_for='moveOffside:done')
+    ema.send('next;', wait_for='moveNext:done;')
+    ema.send('pick;', wait_for='pickSample:done;')
+    ema.send('gate;', wait_for='moveGate:done;')
+    ema.send('spinner;', wait_for='moveSpinner:done;')
+    ema.send('release;', wait_for='releaseSample:done;')
+    ema.send('offside;', wait_for='moveOffside:done;')
     print('Done')
 
 
@@ -260,11 +260,11 @@ def unmount_sample():
         msg = 'Robot not connected. Did you run the robot_begin() method?'
         raise Exception(msg)
     print('Unmounting sample... ', end='', flush=True)
-    ema.send('spinner', wait_for='moveSpinner:done')
-    ema.send('pick', wait_for='pickSample:done')
-    ema.send('gate', wait_for='moveGate:done')
-    ema.send('current', wait_for='returnCurrent:done')
-    ema.send('release', wait_for='releaseSample:done')
+    ema.send('spinner;', wait_for='moveSpinner:done;')
+    ema.send('pick;', wait_for='pickSample:done;')
+    ema.send('gate;', wait_for='moveGate:done;')
+    ema.send('current;', wait_for='returnCurrent:done;')
+    ema.send('release;', wait_for='releaseSample:done;')
     print('Done')
 
 
