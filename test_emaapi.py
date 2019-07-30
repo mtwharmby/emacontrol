@@ -18,10 +18,8 @@ if sys.version_info[0] >= 3:
 def test_robot_begin(ema_mock):
     with patch('builtins.input'):
         robot_begin()
-    assert ema_mock.mock_calls == [call.connect(),
-                                   call.send('powerOn;',
-                                             wait_for='powerOn:done;')
-                                   ]
+    assert ema_mock.mock_calls == [call.send('powerOn;',
+                                             wait_for='powerOn:done;')]
 
 
 @patch('emaapi.ema')
@@ -68,7 +66,8 @@ def test_set_sample_coords(conf_mock):
     with patch('emaapi.Robot.send') as send_mock:
         ema = Robot()
         ema.set_sample_coords(75)
-        send_mock.assert_called_with('setAxis:#X7#Y4;', wait_for='setAxis:done;')
+        send_mock.assert_called_with('setAxis:#X7#Y4;', 
+                                     wait_for='setAxis:done;')
 
 
 def test_read_config():

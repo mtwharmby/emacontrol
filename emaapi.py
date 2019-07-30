@@ -18,12 +18,19 @@ import configparser
 import os
 import socket
 
+try:
+    from gevent.coros import BoundedSemaphore
+except ImportError:
+    from gevent.lock import BoundedSemaphore
+
 # For Python >3.4, a more portable way to getting the home directory is:
 # from pathlib import Path
 # home_dir = Path.home()
 # But pathlib doesn't seem to work on Debian 9. And this might not work under
 # Windows...
 default_config = os.path.join(os.path.expanduser('~'), '.robot.ini')
+
+_send_recv_semaphore = BoundedSemaphore()
 
 
 class Robot():
@@ -84,7 +91,6 @@ class Robot():
         if not self.connected:
             print('Not connected. Cannot disconnect.')
             return
-        self.sock.shutdown(socket.SHUT_RDWR)
         self.sock.close()
         self.connected = False
 
@@ -101,13 +107,41 @@ class Robot():
         message : String message to send to the controller
         wait_for : String message to wait for the controller to send back
         '''
-        self.sock.send(str(message).encode())
-        if wait_for:
-            msg_len = len(wait_for.encode())
-            recv_msg = ''
+        if not self.connected:
+            self.connect()
 
-            while recv_msg != wait_for.encode():
-                recv_msg = self.sock.recv(msg_len)
+        # with-block ensures no other send attempts happen simultaneously
+        with _send_recv_semaphore:
+            msg_bytes = str(message).encode()
+            bytes_sent = 0
+            while bytes_sent < len(msg_bytes):
+                bytes_sent = self.sock.send(msg_bytes)
+
+            # Message fully sent, so we indicate no further sends
+            self.sock.shutdown(socket.SHUT_WR)
+
+            # Now we wait for a reply
+            msg_chunks = []
+            while True:
+                chunk = self.sock.recv(1024)
+                chunk = chunk.strip(b'\x00').decode('utf-8')
+                msg_chunks.append(chunk)
+                if chunk.count(';') == 1:
+                    break
+
+        # We're done, close the socket
+        self.disconnect()
+
+        # Put the message back together and check it's what we expected
+        recvd_msg = "".join(msg_chunks)
+
+        if (wait_for is not None) and (recvd_msg == wait_for):
+            # Everything worked fine
+            pass
+        else:
+            pass  # TODO Handle the situation - probably raise an exception
+
+        return recvd_msg
 
     def set_homed(self):
         '''
@@ -199,7 +233,6 @@ def robot_begin():
     # isn't an option yet.
     input('Have you pressed the reset button?\nPress enter to continue...')
     print('Starting E.M.A. sample changer... ', end='', flush=True)
-    ema.connect()
     ema.send('powerOn;', wait_for='powerOn:done;')
     print('Done')
 
@@ -211,7 +244,6 @@ def robot_end():
     """
     print('Powering off E.M.A. sample changer... ', end='', flush=True)
     ema.send('powerOff;', wait_for='powerOff:done;')
-    ema.disconnect()
     print('Done')
 
 
