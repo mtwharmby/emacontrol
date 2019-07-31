@@ -35,7 +35,6 @@ def test_init():
     assert ema.sample_index is None
     assert ema.x_coord is None
     assert ema.y_coord is None
-    assert ema.homed is False
     assert ema.connected is False
     assert ema.address is None
     assert ema.port is None
@@ -89,19 +88,6 @@ def test__send__(sock_mock):
     ema = Robot(robot_host='127.0.0.3', robot_port=10006, socket_timeout=0.5)
     with pytest.raises(RuntimeError, match=r".*delimiter.*"):
         reply = ema.__send__(message)
-
-
-@patch('configparser.ConfigParser')
-def test_set_homed(conf_mock):
-    with patch('emaapi.Robot.send') as send_mock:
-        ema = Robot(None)
-        assert ema.homed is False
-        ema.set_homed()
-        assert ema.homed is True
-        send_calls = [call('gate;', wait_for='moveGate:done;'),
-                      call('homing;', wait_for='homing:done;')
-                      ]
-        send_mock.assert_has_calls(send_calls)
 
 
 @patch('configparser.ConfigParser')
@@ -168,18 +154,14 @@ def test_sample_to_coords():
 @patch('emaapi.ema')
 def test_mount_sample(ema_mock):
     samcoords_mock = Mock()
-    homed_mock = Mock()
     send_mock = Mock()
     ema_mock.connected = True
     ema_mock.set_sample_coords = samcoords_mock
-    ema_mock.homed = False
-    ema_mock.set_homed = homed_mock
     ema_mock.send = send_mock
 
     mount_sample(75,)
     # Preparation for mounting...
     samcoords_mock.assert_called_with(75, verbose=False)
-    homed_mock.assert_called_once()
     # ... and the actual process:
     send_calls = [call('next;', wait_for='moveNext:done;'),
                   call('pick;', wait_for='pickSample:done;'),

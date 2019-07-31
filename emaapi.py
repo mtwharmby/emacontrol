@@ -43,7 +43,6 @@ class Robot():
         self.sample_index = None
         self.x_coord = None
         self.y_coord = None
-        self.homed = False
         self.connected = False
         self.sock = None
         self.address = robot_host  # TODO
@@ -164,17 +163,6 @@ class Robot():
         # Put the message back together and check it's what we expected
         return "".join(msg_chunks)
 
-    def set_homed(self):  # TODO Remove this?
-        '''
-        Perform the robot's homing procedure
-        '''
-        print('Robot is not homed. Performing homing procedure... ', end='',
-              flush=True)
-        self.send('gate;', wait_for='moveGate:done;')
-        self.send('homing;', wait_for='homing:done;')
-        self.homed = True
-        print('Homing done')
-
     def set_sample_coords(self, n, verbose=False):
         """
         Sets the xy coordinates for the next sample to mount based on the index
@@ -285,8 +273,6 @@ def mount_sample(n, verbose=False):
         msg = 'Robot not connected. Did you run the robot_begin() method?'
         raise Exception(msg)
     ema.set_sample_coords(n, verbose=verbose)
-    if not ema.homed:
-        ema.set_homed()
     print('Mounting sample {}... '.format(n), end='', flush=True)
 
     # Actually do the movements
