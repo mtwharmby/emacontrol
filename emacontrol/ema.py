@@ -17,7 +17,8 @@ class Robot(SocketConnector):
     def __init__(self, config_file=default_config, robot_host=None,
                  robot_port=None, socket_timeout=60):
         super().__init__(robot_host, robot_port, config_file=config_file)
-        self.sample_index = 1  # FIXME Should be reset to 1 by robot_end & robot_begin
+        self.sample_index = 1
+        self.started = False
 
     def _read_config(self):
         """

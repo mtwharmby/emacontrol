@@ -24,6 +24,7 @@ def test_init():
         home_dir = os.path.expanduser('~')
     assert ema.config_file == os.path.join(home_dir, '.robot.ini')
     assert ema.sock is None
+    assert ema.started is False
 
 
 @patch.object(Robot, '__send__')

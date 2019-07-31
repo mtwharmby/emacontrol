@@ -27,8 +27,20 @@ def robot_begin():
     # TODO Ideally this would check the interlock programmatically. But this
     # isn't an option yet.
     input('Have you pressed the reset button?\nPress enter to continue...')
+    gotCoords = ema.send('getCoords;')
+    print(gotCoords)
+    coords = gotCoords['state']
+    if coords != {'X': 0, 'Y': 0}:
+        sample = (coords['X'] * 10) + coords['Y'] + 1
+        ema.sample_index = sample
+        # TODO Log: 'Sample coords at robot start are ({}, {}) (Sample {}). Should be (0, 0) for Sample 1'.format(coords['X'], coords['Y'], sample)
+        print('WARNING: Current sample is {} (not 1!).'.format(sample))
+        print('Is there a sample on the spinner? '
+              + 'Run \'unmount_sample()\' immediately if there is!')
+
     print('Starting E.M.A. sample changer... ', end='', flush=True)
     ema.send('powerOn;', wait_for='powerOn:done;')
+    ema.started = True
     print('Done')
 
 
@@ -39,6 +51,7 @@ def robot_end():
     """
     print('Powering off E.M.A. sample changer... ', end='', flush=True)
     ema.send('powerOff;', wait_for='powerOff:done;')
+    ema.started = False
     print('Done')
 
 
@@ -55,19 +68,21 @@ def mount_sample(n, verbose=False):
     ----------
     n : integer index of the sample to be mounted
     """
-    if not ema.connected:
-        msg = 'Robot not connected. Did you run the robot_begin() method?'
+    if ema.started is False:
+        msg = 'Robot not started. Did you run the robot_begin() method?'
         raise Exception(msg)
     ema.set_sample_coords(n, verbose=verbose)
+    # TODO Log: 'Mounting sample {}'
     print('Mounting sample {}... '.format(n), end='', flush=True)
 
     # Actually do the movements
-    ema.send('next;', wait_for='moveNext:done;')
-    ema.send('pick;', wait_for='pickSample:done;')
-    ema.send('gate;', wait_for='moveGate:done;')
-    ema.send('spinner;', wait_for='moveSpinner:done;')
-    ema.send('release;', wait_for='releaseSample:done;')
-    ema.send('offside;', wait_for='moveOffside:done;')
+    ema.send('moveCoords;', wait_for='moveCoords:done;')
+    ema.send('samplePick;', wait_for='samplePick:done;')
+    ema.send('moveGate;', wait_for='moveGate:done;')
+    ema.send('moveSpinner;', wait_for='moveSpinner:done;')
+    ema.send('sampleRelease;', wait_for='sampleRelease:done;')
+    ema.send('moveOffside;', wait_for='moveOffside:done;')
+    # TODO Log: 'Successfully mounted sample {}'
     print('Done')
 
 
@@ -80,15 +95,17 @@ def unmount_sample():
     go to spinner -> close gripper on sample (move in and close) ->
     -> go to gate -> go to sample on board -> release sample
     """
-    if not ema.connected:
-        msg = 'Robot not connected. Did you run the robot_begin() method?'
+    if ema.started is False:
+        msg = 'Robot not started. Did you run the robot_begin() method?'
         raise Exception(msg)
+    # TODO Log: 'Unmounting sample {}'
     print('Unmounting sample... ', end='', flush=True)
-    ema.send('spinner;', wait_for='moveSpinner:done;')
-    ema.send('pick;', wait_for='pickSample:done;')
-    ema.send('gate;', wait_for='moveGate:done;')
-    ema.send('current;', wait_for='returnCurrent:done;')
-    ema.send('release;', wait_for='releaseSample:done;')
+    ema.send('moveSpinner;', wait_for='moveSpinner:done;')
+    ema.send('samplePick;', wait_for='samplePick:done;')
+    ema.send('moveGate;', wait_for='moveGate:done;')
+    ema.send('moveCoords;', wait_for='moveCoords:done;')
+    ema.send('sampleRelease;', wait_for='sampleRelease:done;')
+    # TODO Log: 'Successfully Unmounted sample {}'
     print('Done')
 
 
