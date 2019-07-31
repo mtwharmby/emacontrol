@@ -26,9 +26,32 @@ def test_init():
     assert ema.sock is None
 
 
-def test_send():
-    # TODO
-    pass
+@patch.object(Robot, '__send__')
+def test_send(send_mock):
+    ema = Robot()
+
+    # Normal behaviour
+    send_mock.return_value = 'Command:done;'
+    reply = ema.send('Command;', parse=False)
+    assert reply == 'Command:done;'
+
+    # Fails should throw an error...
+    send_mock.return_value = 'Command:fail;'
+    with pytest.raises(RuntimeError, match=r'.*failed.*'):
+        reply = ema.send('Command;')
+
+    # By explicitly expecting a fail, we can allow one to occur
+    reply = ema.send('Command;', wait_for='Command:fail;', parse=False)
+    assert reply == 'Command:fail;'
+
+    # If we get a fail when we expected something else, it should still fail
+    with pytest.raises(RuntimeError, match=r'.*failed.*'):
+        reply = ema.send('Command;', wait_for='Command:done;', parse=False)
+
+    send_mock.return_value = 'Command:squirrel;'
+    # Likewise if we don't get what we expected
+    with pytest.raises(RuntimeError, match=r'Unexpected.*'):
+        reply = ema.send('Command;', wait_for='Command:done;', parse=False)
 
 
 def test_set_sample_coords():

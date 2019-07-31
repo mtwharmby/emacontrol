@@ -28,7 +28,7 @@ class Robot(SocketConnector):
         # TODO This should be made robot specific!
         super()._read_config()
 
-    def send(self, message, wait_for=None):
+    def send(self, message, wait_for=None, parse=True):
         '''
         Send a message to the robot controller and wait for a response if
         needed
@@ -40,15 +40,28 @@ class Robot(SocketConnector):
         ----------
         message : String message to send to the controller
         wait_for : String message to wait for the controller to send back
+        parse : Bool should received message be run through message_parser to
+                     check for errors
         '''
         recvd_msg = self.__send__(message)
-        if (wait_for is not None) and (recvd_msg == wait_for):
-            # Everything worked fine
-            pass
+        if parse:
+            output = None  # FIXME
         else:
-            pass  # TODO Handle the situation - probably raise an exception
+            output = recvd_msg
 
-        return recvd_msg
+        # We want to stop the robot in case of a fail unless explicitly told
+        # not to with a wait for. Otherwise we don't know what the robot will
+        # do next
+        if ('fail' in recvd_msg) and (recvd_msg != wait_for):
+            # TODO Log: 'Robot failed on message "{}" with: {}'.format(message, output[2])
+            msg = 'Robot failed while running message "{}"'.format(message)
+            raise RuntimeError(msg)
+        if (wait_for is not None) and (recvd_msg != wait_for):
+            # TODO Log: 'Robot response to "{}" was not as expected. Expected: {}. Received: {}'.format(message, wait_for, recvd_msg)
+            msg = 'Unexpected response from Robot'
+            raise RuntimeError(msg)
+
+        return output
 
     def set_sample_coords(self, n, verbose=False):
         """
