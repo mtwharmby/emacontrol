@@ -19,6 +19,7 @@ should then use an instance of this class to send commands to achieve tasks.
 import configparser
 import os
 import socket
+import time
 
 try:
     from gevent.coros import BoundedSemaphore
@@ -38,7 +39,7 @@ _send_recv_semaphore = BoundedSemaphore()
 class Robot():
 
     def __init__(self, config_file=default_config, robot_host=None,
-                 robot_port=None):
+                 robot_port=None, socket_timeout=60):
         self.sample_index = None
         self.x_coord = None
         self.y_coord = None
@@ -48,6 +49,7 @@ class Robot():
         self.address = robot_host  # TODO
         self.port = robot_port
         self.config_file = config_file
+        self.socket_timeout = socket_timeout
 
     def __read_config__(self):
         '''
@@ -118,20 +120,28 @@ class Robot():
         with _send_recv_semaphore:
             msg_bytes = str(message).encode()
             bytes_sent = 0
+            send_start = time.time()
             while bytes_sent < len(msg_bytes):
                 bytes_sent = bytes_sent + self.sock.send(msg_bytes)
+                if (time.time() - send_start) > self.socket_timeout:
+                    msg = 'Message not sent before timeout'
+                    raise RuntimeError(msg)
 
             # Message fully sent, so we indicate no further sends
             self.sock.shutdown(socket.SHUT_WR)
 
             # Now we wait for a reply
             msg_chunks = []
+            recv_start = time.time()
             while True:
                 chunk = self.sock.recv(1024)
                 chunk = chunk.strip(b'\x00').decode('utf-8')
                 msg_chunks.append(chunk)
                 if chunk.count(';') == 1:
                     break
+                if (time.time() - recv_start) > self.socket_timeout:
+                    msg = 'No message delimiter received before timeout'
+                    raise RuntimeError(msg)
 
         # We're done, close the socket
         self.disconnect()

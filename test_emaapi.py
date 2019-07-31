@@ -66,7 +66,7 @@ def test_send(sock_mock):
     sock_mock().assert_has_calls(sock_calls)
 
     # Same again, but now the messages are sent and received in pieces
-    sock_mock().reset_mock()
+    sock_mock().reset_mock(return_value=True, side_effect=True)
     sock_mock().send.side_effect = [5, 10, 7, 8]
     sock_mock().recv.side_effect = [b'ACommandWithP',
                                     b'arameters:',
@@ -76,6 +76,19 @@ def test_send(sock_mock):
     reply = ema.send(message)
 
     assert reply == msg_reply
+
+    # Now test what happens when no message delimiter is received
+    sock_mock().reset_mock(return_value=True, side_effect=True)
+    sock_mock().send.reset_mock(return_value=True, side_effect=True)
+    sock_mock().recv.reset_mock(return_value=True, side_effect=True)
+
+    msg_reply = 'ACommandWithParameters:done'  # N.B. Removed delimiter
+    sock_mock().send.return_value = len(message)
+    sock_mock().recv.return_value = msg_reply.encode()
+
+    ema = Robot(robot_host='127.0.0.3', robot_port=10006, socket_timeout=0.5)
+    with pytest.raises(RuntimeError, match=r".*delimiter.*"):
+        reply = ema.send(message)
 
 
 @patch('configparser.ConfigParser')
