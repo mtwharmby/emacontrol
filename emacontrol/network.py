@@ -16,7 +16,7 @@ _send_recv_semaphore = BoundedSemaphore()
 
 class SocketConnector(object):
 
-    def __init__(self, host, port, config_file=None, socket_timeout=60):
+    def __init__(self, host, port, config_file=None, socket_timeout=120):
         self.peer = (host, port)
         self.sock = None
         self.socket_timeout = socket_timeout
