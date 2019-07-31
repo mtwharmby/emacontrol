@@ -17,10 +17,7 @@ if sys.version_info[0] >= 3:
 # Methods inside the implementation of the robot class
 def test_init():
     ema = Robot()
-    assert ema.sample_index is None
-    assert ema.x_coord is None
-    assert ema.y_coord is None
-    assert ema.connected is False
+    assert ema.sample_index == 1
     assert ema.address is None
     assert ema.port is None
     if pathlib_path:

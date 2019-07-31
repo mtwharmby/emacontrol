@@ -40,10 +40,7 @@ class Robot():
 
     def __init__(self, config_file=default_config, robot_host=None,
                  robot_port=None, socket_timeout=60):
-        self.sample_index = None
-        self.x_coord = None
-        self.y_coord = None
-        self.connected = False
+        self.sample_index = 1  # FIXME Should be reset to 1 by robot_end & robot_begin
         self.sock = None
         self.address = robot_host  # TODO
         self.port = robot_port
