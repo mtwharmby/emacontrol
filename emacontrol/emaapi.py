@@ -16,15 +16,10 @@ should then use an instance of this class to send commands to achieve tasks.
 """
 # TODO Add logging!
 
-import configparser
 import os
-import socket
-import time
 
-try:
-    from gevent.coros import BoundedSemaphore
-except ImportError:
-    from gevent.lock import BoundedSemaphore
+from emacontrol.network import SocketConnector
+from emacontrol.utils import input_to_int
 
 # For Python >3.4, a more portable way to getting the home directory is:
 # from pathlib import Path
@@ -33,76 +28,23 @@ except ImportError:
 # Windows...
 default_config = os.path.join(os.path.expanduser('~'), '.robot.ini')
 
-_send_recv_semaphore = BoundedSemaphore()
 
-
-class Robot():
+class Robot(SocketConnector):
 
     def __init__(self, config_file=default_config, robot_host=None,
                  robot_port=None, socket_timeout=60):
+        super().__init__(robot_host, robot_port, config_file=config_file)
         self.sample_index = 1  # FIXME Should be reset to 1 by robot_end & robot_begin
-        self.sock = None
-        self.address = robot_host  # TODO
-        self.port = robot_port
-        self.config_file = config_file
-        self.socket_timeout = socket_timeout
 
-    def __read_config__(self):
-        '''
+    def _read_config(self):
+        """
         Read the configuration for the socket from the configuration file given
         to the robot at initialisation. Currently only the hostname/IP address
         and the port are read from the config_file. See example_config.ini to
         see the structure of the config.
-        '''
-        if not os.path.exists(self.config_file):
-            raise(FileNotFoundError('Cannot find E.M.A. API config file: {}'
-                                    .format(self.config_file)))
-        confparse = configparser.ConfigParser()
-        confparse.read(self.config_file)
-
-        # Read values from config ensuring port is integer > 0
-        self.address = confparse.get('robot', 'address')
-        self.port = __input_to_int__(confparse.get('robot', 'port'))
-        if self.port <= 0:
-            raise ValueError('Expecting value greater than 0')
-
-    def _connect(self):
-        '''
-        Connect a socket to the robot controller
-        '''
-        # TODO Log: 'Connecting socket...'
-        if self.is_connected():
-            # TODO Log: 'Socket already connected to "{}:{}"'.format(*self.sock.getpeername()))
-            return
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        if (self.address is None) or (self.port is None):
-            self.__read_config__()
-        self.sock.connect((self.address, self.port))
-        # TODO Log: 'Socket connected to {}:{}'.format(self.address, self.port)
-
-    def _disconnect(self):
         """
-        Disconnect active socket (if one exists)
-        """
-        # TODO Log: 'Disconnecting socket...'
-        if self.is_connected():
-            print('Disconnecting')
-            # TODO socket_info = self.sock.getpeername()
-            self.sock.close()
-            self.sock = None
-            # TODO Log: 'Closed socket to {}:{}'.format(*socket_info)
-            return
-        # TODO Log: 'Socket is already disconnected'
-
-    def is_connected(self):
-        """
-        Reports whether a socket is connected
-        (i.e. it exists and has a file ID != -1)
-        """
-        # print('sock: {} fileno: {}'.format(self.sock, self.sock.fileno()))
-        if self.sock is None:
-            return False
-        return self.sock.fileno() is not -1
+        # TODO This should be made robot specific! 
+        super()._read_config()
 
     def send(self, message, wait_for=None):
         '''
@@ -125,49 +67,6 @@ class Robot():
             pass  # TODO Handle the situation - probably raise an exception
 
         return recvd_msg
-
-    def __send__(self, message):
-        """
-        Send is a protected method which separates the handling of the socket
-        interactions from the interpretation of the message. To send messages
-        to the robot, use the send method.
-        """
-        self._connect()
-
-        # with-block ensures no other send attempts happen simultaneously
-        with _send_recv_semaphore:
-            msg_bytes = str(message).encode()
-            bytes_sent = 0
-            send_start = time.time()
-            while bytes_sent < len(msg_bytes):
-                bytes_sent = bytes_sent + self.sock.send(msg_bytes)
-                if (time.time() - send_start) > self.socket_timeout:
-                    # TODO Log: 'Failed to send message within timeout ({})'.format(self.socket_timeout)
-                    msg = 'Message not sent before timeout'
-                    raise RuntimeError(msg)
-                # TODO Log: 'Sent message "{}" on socket
-
-            # Message fully sent, so we indicate no further sends
-            self.sock.shutdown(socket.SHUT_WR)
-
-            # Now we wait for a reply
-            msg_chunks = []
-            recv_start = time.time()
-            while True:
-                chunk = self.sock.recv(1024)
-                chunk = chunk.strip(b'\x00').decode('utf-8')
-                msg_chunks.append(chunk)
-                if chunk.count(';') == 1:
-                    break
-                if (time.time() - recv_start) > self.socket_timeout:
-                    msg = 'No message delimiter received before timeout'
-                    raise RuntimeError(msg)
-
-        # We're done, close the socket
-        self._disconnect()
-
-        # Put the message back together and check it's what we expected
-        return "".join(msg_chunks)
 
     def set_sample_coords(self, n, verbose=False):
         """
@@ -205,7 +104,7 @@ class Robot():
         ------
         ValueError : if n is not greater than 0
         """
-        n = __input_to_int__(n)
+        n = input_to_int(n)
         if n <= 0:
             raise ValueError('Expecting value greater than 0')
         # "Sample 1" is actually at position (0, 0). To make calculation
@@ -214,29 +113,6 @@ class Robot():
         n = n - 1
         coordinates = (n // 10, n % 10)
         return coordinates
-
-
-def __input_to_int__(value):
-    """
-    Checks that user input is an integer.
-
-    Parameters
-    ----------
-    n : user input to check
-
-    Returns
-    -------
-    integer : n cast to an integer
-
-    Raises
-    ------
-    ValueError : if n is not an integer
-    """
-    if str(value).isdigit():
-        return int(value)
-    else:
-        raise ValueError('Expecting integer. Got: "{0}" ({1})'
-                         .format(value, type(value)))
 
 
 def robot_begin():

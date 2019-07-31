@@ -1,5 +1,4 @@
 import os
-import socket
 import sys
 
 import pytest
@@ -19,8 +18,7 @@ if sys.version_info[0] >= 3:
 def test_init():
     ema = Robot()
     assert ema.sample_index == 1
-    assert ema.address is None
-    assert ema.port is None
+    assert ema.peer == (None, None)
     if pathlib_path:
         home_dir = Path.home()
     else:
@@ -29,101 +27,12 @@ def test_init():
     assert ema.sock is None
 
 
-@patch('socket.socket')
-def test__is_connected(sock_mock):
-    ema = Robot(robot_host='127.0.0.3', robot_port=10006)
-
-    assert ema.is_connected() is False
-
-    # A normal connection
-    ema._connect()
-    # fileno = 11 happens when a socket connects (fileno != -1)
-    sock_mock().fileno.return_value = 11
-    assert ema.is_connected() is True
-
-    # Fake a broken connection (fileno goes to -1)
-    sock_mock().fileno.return_value = -1
-    assert ema.is_connected() is False
-
-
-@patch('socket.socket')
-def test_connect_disconnect(sock_mock):
-    ema = Robot(robot_host='127.0.0.3', robot_port=10006)
-
-    # A normal connection
-    ema._connect()
-    # fileno = 11 happens when a socket connects (fileno != -1)
-    sock_mock().fileno.return_value = 11
-    assert ema.is_connected() is True
-
-    ema._disconnect()
-    assert ema.is_connected() is False
-    # we don't set the fileno here as disconnect should set sock = None
-
-
-@patch('socket.socket')
-def test__send__(sock_mock):
-    # The test assume that the socket is always correctly connected when
-    # fileno is queried
-    sock_mock().fileno.return_value = 11
-
-    message = 'ACommandWithParameters:#P1#P2;'
-    msg_reply = 'ACommandWithParameters:done;'
-    sock_mock().send.return_value = len(message)
-    sock_mock().recv.return_value = msg_reply.encode()
-
-    ema = Robot(robot_host='127.0.0.3', robot_port=10006)
-    reply = ema.__send__(message)
-
-    assert reply == msg_reply
-    sock_calls = [call.connect(('127.0.0.3', 10006)),
-                  call.send(message.encode()),
-                  call.shutdown(socket.SHUT_WR),
-                  call.recv(1024),
-                  call.fileno(),  # This from is_connected()
-                  call.close()]
-    sock_mock().assert_has_calls(sock_calls)
-
-    # Same again, but now the messages are sent and received in pieces
-    sock_mock().reset_mock(return_value=True, side_effect=True)
-    sock_mock().send.side_effect = [5, 10, 7, 8]
-    sock_mock().recv.side_effect = [b'ACommandWithP',
-                                    b'arameters:',
-                                    b'done;']
-
-    ema = Robot(robot_host='127.0.0.3', robot_port=10006)
-    reply = ema.__send__(message)
-
-    assert reply == msg_reply
-
-    # Now test what happens when no message delimiter is received
-    sock_mock().reset_mock(return_value=True, side_effect=True)
-    sock_mock().send.reset_mock(return_value=True, side_effect=True)
-    sock_mock().recv.reset_mock(return_value=True, side_effect=True)
-
-    msg_reply = 'ACommandWithParameters:done'  # N.B. Removed delimiter
-    sock_mock().send.return_value = len(message)
-    sock_mock().recv.return_value = msg_reply.encode()
-
-    ema = Robot(robot_host='127.0.0.3', robot_port=10006, socket_timeout=0.5)
-    with pytest.raises(RuntimeError, match=r".*delimiter.*"):
-        reply = ema.__send__(message)
-
-
-@patch('configparser.ConfigParser')
-def test_set_sample_coords(conf_mock):
+def test_set_sample_coords():
     with patch('emacontrol.emaapi.Robot.send') as send_mock:
         ema = Robot()
         ema.set_sample_coords(75)
         send_mock.assert_called_with('setAxis:#X7#Y4;',
                                      wait_for='setAxis:done;')
-
-
-def test_read_config():
-    ema = Robot(config_file='./example_config.ini')
-    ema.__read_config__()
-    assert ema.address == '127.0.0.2'
-    assert ema.port == 10005
 
 
 # Method supports set_sample_coords
