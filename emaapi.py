@@ -37,15 +37,16 @@ _send_recv_semaphore = BoundedSemaphore()
 
 class Robot():
 
-    def __init__(self, config_file=default_config):
+    def __init__(self, config_file=default_config, robot_host=None,
+                 robot_port=None):
         self.sample_index = None
         self.x_coord = None
         self.y_coord = None
         self.homed = False
         self.connected = False
         self.sock = None
-        self.address = None
-        self.port = None
+        self.address = robot_host  # TODO
+        self.port = robot_port
         self.config_file = config_file
 
     def __read_config__(self):
@@ -118,7 +119,7 @@ class Robot():
             msg_bytes = str(message).encode()
             bytes_sent = 0
             while bytes_sent < len(msg_bytes):
-                bytes_sent = self.sock.send(msg_bytes)
+                bytes_sent = bytes_sent + self.sock.send(msg_bytes)
 
             # Message fully sent, so we indicate no further sends
             self.sock.shutdown(socket.SHUT_WR)

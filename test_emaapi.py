@@ -47,6 +47,37 @@ def test_init():
     assert ema.sock is None
 
 
+@patch('socket.socket')
+def test_send(sock_mock):
+    message = 'ACommandWithParameters:#P1#P2;'
+    msg_reply = 'ACommandWithParameters:done;'
+    sock_mock().send.return_value = len(message)
+    sock_mock().recv.return_value = msg_reply.encode()
+
+    ema = Robot(robot_host='127.0.0.3', robot_port=10006)
+    reply = ema.send(message)
+
+    assert reply == msg_reply
+    sock_calls = [call.connect(('127.0.0.3', 10006)),
+                  call.send(message.encode()),
+                  call.shutdown(socket.SHUT_WR),
+                  call.recv(1024),
+                  call.close()]
+    sock_mock().assert_has_calls(sock_calls)
+
+    # Same again, but now the messages are sent and received in pieces
+    sock_mock().reset_mock()
+    sock_mock().send.side_effect = [5, 10, 7, 8]
+    sock_mock().recv.side_effect = [b'ACommandWithP',
+                                    b'arameters:',
+                                    b'done;']
+
+    ema = Robot(robot_host='127.0.0.3', robot_port=10006)
+    reply = ema.send(message)
+
+    assert reply == msg_reply
+
+
 @patch('configparser.ConfigParser')
 def test_set_homed(conf_mock):
     with patch('emaapi.Robot.send') as send_mock:
@@ -65,7 +96,7 @@ def test_set_sample_coords(conf_mock):
     with patch('emaapi.Robot.send') as send_mock:
         ema = Robot()
         ema.set_sample_coords(75)
-        send_mock.assert_called_with('setAxis:#X7#Y4;', 
+        send_mock.assert_called_with('setAxis:#X7#Y4;',
                                      wait_for='setAxis:done;')
 
 
@@ -98,22 +129,6 @@ def test_disconnect(sock_mock):
     ema.connect()
     ema.disconnect()
     assert ema.connected is False
-
-
-@patch('socket.socket')
-def test_send(sock_mock, monkeypatch):
-    ema = Robot()
-    ema.address = '127.0.0.3'
-    ema.port = 10006
-    ema.connect()
-
-    # Test just sending a message
-    ema.send('test')
-    sock_mock.return_value.send.assert_called_with(b'test')
-
-    # Test sending message & waiting for a response
-    sock_mock.return_value.recv.return_value = 'test:done'.encode()
-    ema.send('test', wait_for='test:done')
 
 
 # Method supports set_sample_coords
