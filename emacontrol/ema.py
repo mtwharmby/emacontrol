@@ -1,4 +1,5 @@
 import os
+import re
 
 from emacontrol.network import SocketConnector
 from emacontrol.utils import input_to_int
@@ -45,7 +46,7 @@ class Robot(SocketConnector):
         '''
         recvd_msg = self.__send__(message)
         if parse:
-            output = None  # FIXME
+            output = Robot.parse_message(recvd_msg)
         else:
             output = recvd_msg
 
@@ -53,7 +54,7 @@ class Robot(SocketConnector):
         # not to with a wait for. Otherwise we don't know what the robot will
         # do next
         if ('fail' in recvd_msg) and (recvd_msg != wait_for):
-            # TODO Log: 'Robot failed on message "{}" with: {}'.format(message, output[2])
+            # TODO Log: 'Robot failed on message "{}" with: {}'.format(message, output[state[0]])
             msg = 'Robot failed while running message "{}"'.format(message)
             raise RuntimeError(msg)
         if (wait_for is not None) and (recvd_msg != wait_for):
@@ -74,7 +75,8 @@ class Robot(SocketConnector):
         verbose : boolean if true prints the sample coordinates to screen
         """
         self.sample_index = n
-        self.x_coord, self.y_coord = Robot.samplenr_to_xy(n)
+        x_coord, y_coord = Robot.samplenr_to_xy(n)
+        # TODO Log: 'Setting sample coordinates for sample {} to ({}, {})'.format(n, x_coord, y_coord)
         if verbose:
             print('Sample coords: ({}, {})'.format(self.x_coord, self.y_coord))
         self.send('setAxis:#X{0:d}#Y{1:d};'.format(self.x_coord, self.y_coord),
@@ -108,3 +110,51 @@ class Robot(SocketConnector):
         n = n - 1
         coordinates = (n // 10, n % 10)
         return coordinates
+
+    @staticmethod
+    def parse_message(message):
+        """
+        Parse the messages that come from the robot.
+        Messages have three formats:
+        command:result;
+        command:#parameters;
+        command:result_status';
+
+        Parameters are separated out with either given names or increasing
+        integers and passed into a dictionary.
+
+        Parameters
+        ----------
+        message : String to parse
+
+        Returns
+        -------
+        dict containing three fields (command; result; status)
+        """
+        command, response = message.strip(';').split(':')
+        result = ''
+        state = {}
+
+        # First handle the case we get some parameters back
+        if response[0] == '#':
+            parameters = re.findall(r'[A-Za-z]+\d*\.*\d*', response)
+            for i in range(len(parameters)):
+                chars = re.search(r'[A-Za-z]+', parameters[i]).group()
+                nums = re.search(r'\d+\.*\d*', parameters[i])
+
+                # Are these named parameters? If so separate values and names
+                if nums:
+                    try:
+                        state[chars] = input_to_int(nums.group())
+                    except ValueError:
+                        state[chars] = float(nums.group())
+                else:
+                    state[i] = chars
+        # Or is this just a string response?
+        else:
+            response = response.split('_')
+            result = response[0]
+            if len(response) == 2:
+                state[0] = response[1].strip('\'')
+
+        return {'command': command, 'result': result, 'state': state}

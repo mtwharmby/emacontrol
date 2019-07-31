@@ -78,3 +78,32 @@ def test_sample_to_coords():
 
     with pytest.raises(ValueError, match=r".*greater than 0"):
         Robot.samplenr_to_xy(0)
+
+
+# Method supports send
+def test_message_parser():
+    output = Robot.parse_message('setCoords:done;')
+    assert output == {'command': 'setCoords',
+                      'result': 'done',
+                      'state': {}}
+
+    output = Robot.parse_message('getPowerState:#On;')
+    assert output == {'command': 'getPowerState',
+                      'result': '',
+                      'state': {0: 'On', }}
+
+    output = Robot.parse_message('getCoords:#X4#Y2;')
+    assert output == {'command': 'getCoords',
+                      'result': '',
+                      'state': {'X': 4, 'Y': 2}}
+
+    msg = 'powerOn:fail_\'RobotPowerCannotBeSwitched\';'
+    output = Robot.parse_message(msg)
+    assert output == {'command': 'powerOn',
+                      'result': 'fail',
+                      'state': {0: 'RobotPowerCannotBeSwitched'}}
+
+    output = Robot.parse_message('getSAM:#X1.432#Y2.643#Z0.53;')
+    assert output == {'command': 'getSAM',
+                      'result': '',
+                      'state': {'X': 1.432, 'Y': 2.643, 'Z': 0.53}}
