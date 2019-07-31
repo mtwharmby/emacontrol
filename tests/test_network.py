@@ -61,7 +61,7 @@ def test__send__(sock_mock):
     assert reply == msg_reply
     sock_calls = [call.connect(('127.0.0.3', 10006)),
                   call.send(message.encode()),
-                  call.shutdown(socket.SHUT_WR),
+                  # call.shutdown(socket.SHUT_WR),
                   call.recv(1024),
                   call.fileno(),  # This from is_connected()
                   call.close()]

@@ -102,8 +102,12 @@ class SocketConnector(object):
                     raise RuntimeError(msg)
                 # TODO Log: 'Sent message "{}" on socket
 
+            # This is commented out as, although it is the 'correct' thing to
+            # do, it seems to have a detrimental effect on the stability of
+            # the code. Messages never get answered.
+            #
             # Message fully sent, so we indicate no further sends
-            self.sock.shutdown(socket.SHUT_WR)
+            # self.sock.shutdown(socket.SHUT_WR)
 
             # Now we wait for a reply
             msg_chunks = []
