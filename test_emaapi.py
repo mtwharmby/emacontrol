@@ -13,21 +13,6 @@ if sys.version_info[0] >= 3:
         from pathlib import Path
         pathlib_path = True
 
-# These tests are for the  basic start-up/shutdown methods
-@patch('emaapi.ema')
-def test_robot_begin(ema_mock):
-    with patch('builtins.input'):
-        robot_begin()
-    assert ema_mock.mock_calls == [call.send('powerOn;',
-                                             wait_for='powerOn:done;')]
-
-
-@patch('emaapi.ema')
-def test_robot_end(ema_mock):
-    robot_end()
-    assert ema_mock.mock_calls == [call.send('powerOff;',
-                                             wait_for='powerOff:done;')]
-
 
 # Methods inside the implementation of the robot class
 def test_init():
@@ -47,7 +32,43 @@ def test_init():
 
 
 @patch('socket.socket')
+def test__is_connected(sock_mock):
+    ema = Robot(robot_host='127.0.0.3', robot_port=10006)
+
+    assert ema.is_connected() is False
+
+    # A normal connection
+    ema._connect()
+    # fileno = 11 happens when a socket connects (fileno != -1)
+    sock_mock().fileno.return_value = 11
+    assert ema.is_connected() is True
+
+    # Fake a broken connection (fileno goes to -1)
+    sock_mock().fileno.return_value = -1
+    assert ema.is_connected() is False
+
+
+@patch('socket.socket')
+def test_connect_disconnect(sock_mock):
+    ema = Robot(robot_host='127.0.0.3', robot_port=10006)
+
+    # A normal connection
+    ema._connect()
+    # fileno = 11 happens when a socket connects (fileno != -1)
+    sock_mock().fileno.return_value = 11
+    assert ema.is_connected() is True
+
+    ema._disconnect()
+    assert ema.is_connected() is False
+    # we don't set the fileno here as disconnect should set sock = None
+
+
+@patch('socket.socket')
 def test__send__(sock_mock):
+    # The test assume that the socket is always correctly connected when
+    # fileno is queried
+    sock_mock().fileno.return_value = 11
+
     message = 'ACommandWithParameters:#P1#P2;'
     msg_reply = 'ACommandWithParameters:done;'
     sock_mock().send.return_value = len(message)
@@ -61,6 +82,7 @@ def test__send__(sock_mock):
                   call.send(message.encode()),
                   call.shutdown(socket.SHUT_WR),
                   call.recv(1024),
+                  call.fileno(),  # This from is_connected()
                   call.close()]
     sock_mock().assert_has_calls(sock_calls)
 
@@ -106,30 +128,6 @@ def test_read_config():
     assert ema.port == 10005
 
 
-@patch('socket.socket')
-def test_connect(sock_mock):
-    ema = Robot()
-    ema.address = '127.0.0.3'
-    ema.port = 10006
-    assert ema.connected is False
-    ema.connect()
-    assert ema.connected is True
-    sock_calls = [call(socket.AF_INET, socket.SOCK_STREAM),
-                  call().connect(('127.0.0.3', 10006))]
-    assert sock_mock.mock_calls == sock_calls
-
-
-@patch('socket.socket')
-def test_disconnect(sock_mock):
-    ema = Robot()
-    ema.address = '127.0.0.3'
-    ema.port = 10006
-    assert ema.connected is False
-    ema.connect()
-    ema.disconnect()
-    assert ema.connected is False
-
-
 # Method supports set_sample_coords
 def test_sample_to_coords():
 
@@ -147,6 +145,22 @@ def test_sample_to_coords():
 
     with pytest.raises(ValueError, match=r".*greater than 0"):
         Robot.samplenr_to_xy(0)
+
+
+# These tests are for the  basic start-up/shutdown methods
+@patch('emaapi.ema')
+def test_robot_begin(ema_mock):
+    with patch('builtins.input'):
+        robot_begin()
+    assert ema_mock.mock_calls == [call.send('powerOn;',
+                                             wait_for='powerOn:done;')]
+
+
+@patch('emaapi.ema')
+def test_robot_end(ema_mock):
+    robot_end()
+    assert ema_mock.mock_calls == [call.send('powerOff;',
+                                             wait_for='powerOff:done;')]
 
 
 # The following tests are for functions which wait for a message to return from

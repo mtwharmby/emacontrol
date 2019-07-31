@@ -69,35 +69,43 @@ class Robot():
         if self.port <= 0:
             raise ValueError('Expecting value greater than 0')
 
-    def connect(self):
+    def _connect(self):
         '''
         Connect a socket to the robot controller
-
-        Creates a socket based on the configuration taken from the config_file.
         '''
-        if self.connected:
-            if self.sock.fileno == -1:
-                # Socket is disconnected or failed, so it's safe to reconnect
-                self.connected = False
-            else:
-                print("Socket is already connected...")
-                return
+        # TODO Log: 'Connecting socket...'
+        if self.is_connected():
+            # TODO Log: 'Socket already connected to "{}:{}"'.format(*self.sock.getpeername()))
+            return
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if (self.address is None) or (self.port is None):
             self.__read_config__()
         self.sock.connect((self.address, self.port))
-        # TODO Log: 'Connected to {}:{}'.format(self.address, self.port)
-        self.connected = True
+        # TODO Log: 'Socket connected to {}:{}'.format(self.address, self.port)
 
-    def disconnect(self):
-        '''
+    def _disconnect(self):
+        """
         Disconnect active socket (if one exists)
-        '''
-        if not self.connected:
-            print('Not connected. Cannot disconnect.')
+        """
+        # TODO Log: 'Disconnecting socket...'
+        if self.is_connected():
+            print('Disconnecting')
+            # TODO socket_info = self.sock.getpeername()
+            self.sock.close()
+            self.sock = None
+            # TODO Log: 'Closed socket to {}:{}'.format(*socket_info)
             return
-        self.sock.close()
-        self.connected = False
+        # TODO Log: 'Socket is already disconnected'
+
+    def is_connected(self):
+        """
+        Reports whether a socket is connected
+        (i.e. it exists and has a file ID != -1)
+        """
+        # print('sock: {} fileno: {}'.format(self.sock, self.sock.fileno()))
+        if self.sock is None:
+            return False
+        return self.sock.fileno() is not -1
 
     def send(self, message, wait_for=None):
         '''
@@ -127,8 +135,7 @@ class Robot():
         interactions from the interpretation of the message. To send messages
         to the robot, use the send method.
         """
-        if not self.connected:
-            self.connect()
+        self._connect()
 
         # with-block ensures no other send attempts happen simultaneously
         with _send_recv_semaphore:
@@ -138,8 +145,10 @@ class Robot():
             while bytes_sent < len(msg_bytes):
                 bytes_sent = bytes_sent + self.sock.send(msg_bytes)
                 if (time.time() - send_start) > self.socket_timeout:
+                    # TODO Log: 'Failed to send message within timeout ({})'.format(self.socket_timeout)
                     msg = 'Message not sent before timeout'
                     raise RuntimeError(msg)
+                # TODO Log: 'Sent message "{}" on socket
 
             # Message fully sent, so we indicate no further sends
             self.sock.shutdown(socket.SHUT_WR)
@@ -158,7 +167,7 @@ class Robot():
                     raise RuntimeError(msg)
 
         # We're done, close the socket
-        self.disconnect()
+        self._disconnect()
 
         # Put the message back together and check it's what we expected
         return "".join(msg_chunks)
