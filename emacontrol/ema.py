@@ -79,8 +79,8 @@ class Robot(SocketConnector):
         # TODO Log: 'Setting sample coordinates for sample {} to ({}, {})'.format(n, x_coord, coord)
         if verbose:
             print('Sample coords: ({}, {})'.format(x_coord, y_coord))
-        self.send('setAxis:#X{0:d}#Y{1:d};'.format(x_coord, y_coord),
-                  wait_for='setAxis:done;')
+        self.send('setCoords:#X{0:d}#Y{1:d};'.format(x_coord, y_coord),
+                  wait_for='setCoords:done;')
 
     @staticmethod
     def samplenr_to_xy(n):

@@ -58,8 +58,8 @@ def test_set_sample_coords():
     with patch('emacontrol.emaapi.Robot.send') as send_mock:
         ema = Robot()
         ema.set_sample_coords(75)
-        send_mock.assert_called_with('setAxis:#X7#Y4;',
-                                     wait_for='setAxis:done;')
+        send_mock.assert_called_with('setCoords:#X7#Y4;',
+                                     wait_for='setCoords:done;')
 
 
 # Method supports set_sample_coords
