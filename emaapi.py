@@ -113,6 +113,21 @@ class Robot():
         message : String message to send to the controller
         wait_for : String message to wait for the controller to send back
         '''
+        recvd_msg = self.__send__(message)
+        if (wait_for is not None) and (recvd_msg == wait_for):
+            # Everything worked fine
+            pass
+        else:
+            pass  # TODO Handle the situation - probably raise an exception
+
+        return recvd_msg
+
+    def __send__(self, message):
+        """
+        Send is a protected method which separates the handling of the socket
+        interactions from the interpretation of the message. To send messages
+        to the robot, use the send method.
+        """
         if not self.connected:
             self.connect()
 
@@ -147,15 +162,7 @@ class Robot():
         self.disconnect()
 
         # Put the message back together and check it's what we expected
-        recvd_msg = "".join(msg_chunks)
-
-        if (wait_for is not None) and (recvd_msg == wait_for):
-            # Everything worked fine
-            pass
-        else:
-            pass  # TODO Handle the situation - probably raise an exception
-
-        return recvd_msg
+        return "".join(msg_chunks)
 
     def set_homed(self):  # TODO Remove this?
         '''

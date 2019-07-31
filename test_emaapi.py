@@ -48,14 +48,14 @@ def test_init():
 
 
 @patch('socket.socket')
-def test_send(sock_mock):
+def test__send__(sock_mock):
     message = 'ACommandWithParameters:#P1#P2;'
     msg_reply = 'ACommandWithParameters:done;'
     sock_mock().send.return_value = len(message)
     sock_mock().recv.return_value = msg_reply.encode()
 
     ema = Robot(robot_host='127.0.0.3', robot_port=10006)
-    reply = ema.send(message)
+    reply = ema.__send__(message)
 
     assert reply == msg_reply
     sock_calls = [call.connect(('127.0.0.3', 10006)),
@@ -73,7 +73,7 @@ def test_send(sock_mock):
                                     b'done;']
 
     ema = Robot(robot_host='127.0.0.3', robot_port=10006)
-    reply = ema.send(message)
+    reply = ema.__send__(message)
 
     assert reply == msg_reply
 
@@ -88,7 +88,7 @@ def test_send(sock_mock):
 
     ema = Robot(robot_host='127.0.0.3', robot_port=10006, socket_timeout=0.5)
     with pytest.raises(RuntimeError, match=r".*delimiter.*"):
-        reply = ema.send(message)
+        reply = ema.__send__(message)
 
 
 @patch('configparser.ConfigParser')
