@@ -64,7 +64,6 @@ class SocketConnector(object):
         """
         # TODO Log: 'Disconnecting socket...'
         if self.is_connected():
-            print('Disconnecting')
             # TODO socket_info = self.sock.getpeername()
             self.sock.close()
             self.sock = None

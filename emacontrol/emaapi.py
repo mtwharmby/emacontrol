@@ -28,7 +28,6 @@ def robot_begin():
     # isn't an option yet.
     input('Have you pressed the reset button?\nPress enter to continue...')
     gotCoords = ema.send('getCoords;')
-    print(gotCoords)
     coords = gotCoords['state']
     if coords != {'X': 0, 'Y': 0}:
         sample = (coords['X'] * 10) + coords['Y'] + 1
