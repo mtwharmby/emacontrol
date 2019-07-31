@@ -26,8 +26,7 @@ def test_robot_begin(ema_mock):
 def test_robot_end(ema_mock):
     robot_end()
     assert ema_mock.mock_calls == [call.send('powerOff;',
-                                             wait_for='powerOff:done;'),
-                                   call.disconnect()]
+                                             wait_for='powerOff:done;')]
 
 
 # Methods inside the implementation of the robot class
