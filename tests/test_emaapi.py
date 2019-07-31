@@ -5,7 +5,8 @@ import sys
 import pytest
 from mock import call, Mock, patch
 
-from emaapi import robot_begin, robot_end, mount_sample, unmount_sample, Robot
+from emacontrol.emaapi import (robot_begin, robot_end, mount_sample,
+                               unmount_sample, Robot)
 
 pathlib_path = False  # As this doesn't work with python < 3.6
 if sys.version_info[0] >= 3:
@@ -111,7 +112,7 @@ def test__send__(sock_mock):
 
 @patch('configparser.ConfigParser')
 def test_set_sample_coords(conf_mock):
-    with patch('emaapi.Robot.send') as send_mock:
+    with patch('emacontrol.emaapi.Robot.send') as send_mock:
         ema = Robot()
         ema.set_sample_coords(75)
         send_mock.assert_called_with('setAxis:#X7#Y4;',
@@ -145,7 +146,7 @@ def test_sample_to_coords():
 
 
 # These tests are for the  basic start-up/shutdown methods
-@patch('emaapi.ema')
+@patch('emacontrol.emaapi.ema')
 def test_robot_begin(ema_mock):
     with patch('builtins.input'):
         robot_begin()
@@ -153,7 +154,7 @@ def test_robot_begin(ema_mock):
                                              wait_for='powerOn:done;')]
 
 
-@patch('emaapi.ema')
+@patch('emacontrol.emaapi.ema')
 def test_robot_end(ema_mock):
     robot_end()
     assert ema_mock.mock_calls == [call.send('powerOff;',
@@ -162,7 +163,7 @@ def test_robot_end(ema_mock):
 
 # The following tests are for functions which wait for a message to return from
 # the robot before continuing
-@patch('emaapi.ema')
+@patch('emacontrol.emaapi.ema')
 def test_mount_sample(ema_mock):
     samcoords_mock = Mock()
     send_mock = Mock()
@@ -188,7 +189,7 @@ def test_mount_sample(ema_mock):
         mount_sample(75)
 
 
-@patch('emaapi.ema')
+@patch('emacontrol.emaapi.ema')
 def test_unmount_sample(ema_mock):
     ema_mock.connected = True
     unmount_sample()
