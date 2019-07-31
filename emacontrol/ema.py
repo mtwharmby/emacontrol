@@ -82,6 +82,14 @@ class Robot(SocketConnector):
             print('Sample coords: ({}, {})'.format(x_coord, y_coord))
         self.send('setCoords:#X{0:d}#Y{1:d};'.format(x_coord, y_coord),
                   wait_for='setCoords:done;')
+    
+    # def isPowered(self):
+    #     power_state = self.send('getPowerState;')
+    #     _, state, _ = Robot.message_parser(power_state)
+    #     if state.lower() == 'on':
+    #         return True
+    #     else:
+    #         return False
 
     @staticmethod
     def samplenr_to_xy(n):
