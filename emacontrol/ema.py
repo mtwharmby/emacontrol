@@ -60,7 +60,7 @@ class Robot(SocketConnector):
             raise RuntimeError(msg)
         if (wait_for is not None) and (recvd_msg != wait_for):
             # TODO Log: 'Robot response to "{}" was not as expected. Expected: {}. Received: {}'.format(message, wait_for, recvd_msg)
-            msg = 'Unexpected response from Robot'
+            msg = 'Unexpected response from Robot: {}'.format(recvd_msg)
             raise RuntimeError(msg)
 
         return output
