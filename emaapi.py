@@ -14,6 +14,8 @@ should then use an instance of this class to send commands to achieve tasks.
     Go to zero position (check with Mario what is best)
     Setting of sam postion
 """
+# TODO Add logging!
+
 import configparser
 import os
 import socket
@@ -82,6 +84,7 @@ class Robot():
         if (self.address is None) or (self.port is None):
             self.__read_config__()
         self.sock.connect((self.address, self.port))
+        # TODO Log: 'Connected to {}:{}'.format(self.address, self.port)
         self.connected = True
 
     def disconnect(self):
@@ -143,7 +146,7 @@ class Robot():
 
         return recvd_msg
 
-    def set_homed(self):
+    def set_homed(self):  # TODO Remove this?
         '''
         Perform the robot's homing procedure
         '''
