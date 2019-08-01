@@ -68,6 +68,9 @@ class SocketConnector(object):
             # TODO socket_info = self.sock.getpeername()
             self.sock.close()
             self.sock = None
+            # Sleep briefly to ensure the sock.close() has completed before
+            # giving the system chance to open another socket!
+            gevent.sleep(0.1)
             # TODO Log: 'Closed socket to {}:{}'.format(*socket_info)
             return
         # TODO Log: 'Socket is already disconnected'
