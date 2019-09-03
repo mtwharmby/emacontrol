@@ -55,11 +55,13 @@ class Robot(SocketConnector):
         # not to with a wait for. Otherwise we don't know what the robot will
         # do next
         if ('fail' in recvd_msg) and (recvd_msg != wait_for):
-            # TODO Log: 'Robot failed on message "{}" with: {}'.format(message, output[state[0]])
+            # TODO Log: 'Robot failed on message "{}" with: {}'.format(message,
+            # output[state[0]])
             msg = 'Robot failed while running message "{}"'.format(message)
             raise RuntimeError(msg)
         if (wait_for is not None) and (recvd_msg != wait_for):
-            # TODO Log: 'Robot response to "{}" was not as expected. Expected: {}. Received: {}'.format(message, wait_for, recvd_msg)
+            # TODO Log: 'Robot response to "{}" was not as expected. Expected:
+            # {}. Received: {}'.format(message, wait_for, recvd_msg)
             msg = 'Unexpected response from Robot: {}'.format(recvd_msg)
             raise RuntimeError(msg)
 
@@ -77,12 +79,13 @@ class Robot(SocketConnector):
         """
         self.sample_index = n
         x_coord, y_coord = Robot.samplenr_to_xy(n)
-        # TODO Log: 'Setting sample coordinates for sample {} to ({}, {})'.format(n, x_coord, coord)
+        # TODO Log: 'Setting sample coordinates for sample {} to ({}, {})'
+        # .format(n, x_coord, coord)
         if verbose:
             print('Sample coords: ({}, {})'.format(x_coord, y_coord))
         self.send('setCoords:#X{0:d}#Y{1:d};'.format(x_coord, y_coord),
                   wait_for='setCoords:done;')
-    
+
     # def isPowered(self):
     #     power_state = self.send('getPowerState;')
     #     _, state, _ = Robot.message_parser(power_state)

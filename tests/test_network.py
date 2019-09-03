@@ -1,5 +1,3 @@
-import socket
-
 import pytest
 from mock import call, patch
 
@@ -88,6 +86,7 @@ def test__send__(sock_mock):
     sock_mock().send.return_value = len(message)
     sock_mock().recv.return_value = msg_reply.encode()
 
-    sock_conn = SocketConnector(host='127.0.0.3', port=10006, socket_timeout=0.5)
+    sock_conn = SocketConnector(host='127.0.0.3', port=10006,
+                                socket_timeout=0.5)
     with pytest.raises(RuntimeError, match=r".*delimiter.*"):
         reply = sock_conn.__send__(message)

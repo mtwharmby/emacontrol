@@ -32,7 +32,9 @@ def robot_begin():
     if coords != {'X': 0, 'Y': 0}:
         sample = (coords['X'] * 10) + coords['Y'] + 1
         ema.sample_index = sample
-        # TODO Log: 'Sample coords at robot start are ({}, {}) (Sample {}). Should be (0, 0) for Sample 1'.format(coords['X'], coords['Y'], sample)
+        # TODO Log: 'Sample coords at robot start are ({}, {}) (Sample {}).
+        # Should be (0, 0) for Sample 1'.format(coords['X'], coords['Y'],
+        # sample)
         print('WARNING: Current sample is {} (not 1!).'.format(sample))
         print('Is there a sample on the spinner? '
               + 'Run \'unmount_sample()\' immediately if there is!')

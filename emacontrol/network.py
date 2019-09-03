@@ -43,7 +43,8 @@ class SocketConnector(object):
         if robot_port <= 0:
             raise ValueError('Expecting value greater than 0')
         self.peer = (robot_host, robot_port)
-        # TODO Log: 'Socket peer for this connection set to "{}:{}"'.format(*self.peer)
+        # TODO Log: 'Socket peer for this connection set to "{}:{}"'
+        # .format(*self.peer)
 
     def _connect(self):
         '''
@@ -51,7 +52,8 @@ class SocketConnector(object):
         '''
         # TODO Log: 'Connecting socket...'
         if self.is_connected():
-            # TODO Log: 'Socket already connected to "{}:{}"'.format(*self.sock.getpeername()))
+            # TODO Log: 'Socket already connected to "{}:{}"'
+            # .format(*self.sock.getpeername()))
             return
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if (self.peer[0] is None) or (self.peer[1] is None):
@@ -103,7 +105,8 @@ class SocketConnector(object):
                     try:
                         bytes_sent = bytes_sent + self.sock.send(msg_bytes)
                         if (time.time() - send_start) > self.socket_timeout:
-                            # TODO Log: 'Failed to send message within timeout ({})'.format(self.socket_timeout)
+                            # TODO Log: 'Failed to send message within timeout
+                            # ({})'.format(self.socket_timeout)
                             msg = 'Message not sent before timeout'
                             raise RuntimeError(msg)
                         # TODO Log: 'Sent message "{}" on socket
