@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import re
 
 from emacontrol.network import SocketConnector
@@ -86,6 +87,22 @@ class Robot(SocketConnector):
         self.send('setCoords:#X{0:d}#Y{1:d};'.format(x_coord, y_coord),
                   wait_for='setCoords:done;')
 
+    def get_spinner_coords(self):
+        # TODO Add docstring!
+        spin_coords = self.send('getSpinnerCoords;')
+        _, state, _ = Robot.parse_message(spin_coords)
+        # TODO Finish me!
+
+    def set_spinner_coords(self, samx, samy, samz, om, diffh, diffv,
+                           verbose=False):
+        # TODO Add docstring!
+        spinner_coords = Robot._vector_calc(samx, samy, samz, om, diffh, diffv)
+        if verbose:
+            print('Spinner coords: ({}, {}, {})'.format(*spinner_coords))
+        self.send(('setSpinnerCoords:'
+                   + '#X{0:.5f}#Y{1:.5f}#Z{2:.5f};'.format(*spinner_coords)),
+                  wait_for='setSpinnerCoords:done;')
+
     # def isPowered(self):
     #     power_state = self.send('getPowerState;')
     #     _, state, _ = Robot.message_parser(power_state)
@@ -170,3 +187,13 @@ class Robot(SocketConnector):
                 state[0] = response[1].strip('\'')
 
         return {'command': command, 'result': result, 'state': state}
+
+    @staticmethod
+    def _vector_calc(samx, samy, samz, om, diffh, diffv):
+        # TODO Add docstring!
+        # TODO Should this already calc position based on known position?
+        spin_x = diffh + samx
+        spin_y = diffv * np.cos(np.radians(-om)) + samy
+        spin_z = diffv * np.sin(np.radians(-om)) + samz
+
+        return (spin_x, spin_y, spin_z)

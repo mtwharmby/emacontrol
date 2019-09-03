@@ -108,3 +108,30 @@ def test_message_parser():
     assert output == {'command': 'getSAM',
                       'result': '',
                       'state': {'X': 1.432, 'Y': 2.643, 'Z': 0.53}}
+
+
+def test_vector_calc():
+    samx = 0.5
+    samy = 1
+    samz = 2
+    om = 90
+    diffh = 0.5
+    diffv = 1
+
+    res = Robot._vector_calc(samx, samy, samz, om, diffh, diffv)
+    assert res == (1.0, 1.0, 1.0)
+
+
+def test_set_spinner_coords():
+    samx = 0.5
+    samy = 1
+    samz = 2
+    om = 90
+    diffh = 0.5
+    diffv = 1
+
+    with patch('emacontrol.emaapi.Robot.send') as send_mock:
+        ema = Robot()
+        ema.set_spinner_coords(samx, samy, samz, om, diffh, diffv)
+        send_mock.assert_called_with('setSpinnerCoords:#X1.00000#Y1.00000#Z1.00000;',
+                                     wait_for='setSpinnerCoords:done;')
