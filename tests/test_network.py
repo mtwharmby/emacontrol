@@ -43,7 +43,7 @@ def test__connect__disconnect(sock_mock):
 
 
 @patch('socket.socket')
-def test__send__(sock_mock):
+def test__send__FullMessages(sock_mock):
     # The test assume that the socket is always correctly connected when
     # fileno is queried
     sock_mock().fileno.return_value = 11
@@ -77,11 +77,13 @@ def test__send__(sock_mock):
 
     assert reply == msg_reply
 
-    # Now test what happens when no message delimiter is received
-    sock_mock().reset_mock(return_value=True, side_effect=True)
-    sock_mock().send.reset_mock(return_value=True, side_effect=True)
-    sock_mock().recv.reset_mock(return_value=True, side_effect=True)
 
+@patch('socket.socket')
+def test__send__PartialMessages(sock_mock):
+    # The test assume that the socket is always correctly connected when
+    # fileno is queried
+    sock_mock().fileno.return_value = 11
+    message = 'ACommandWithParameters:#P1#P2;'
     msg_reply = 'ACommandWithParameters:done'  # N.B. Removed delimiter
     sock_mock().send.return_value = len(message)
     sock_mock().recv.return_value = msg_reply.encode()
@@ -89,4 +91,4 @@ def test__send__(sock_mock):
     sock_conn = SocketConnector(host='127.0.0.3', port=10006,
                                 socket_timeout=0.5)
     with pytest.raises(RuntimeError, match=r".*delimiter.*"):
-        reply = sock_conn.__send__(message)
+        sock_conn.__send__(message)
