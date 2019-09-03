@@ -66,7 +66,7 @@ def test__send__FullMessages(sock_mock):
     sock_mock().assert_has_calls(sock_calls)
 
     # Same again, but now the messages are sent and received in pieces
-    sock_mock().reset_mock(return_value=True, side_effect=True)
+    # sock_mock().reset_mock(return_value=True, side_effect=True)
     sock_mock().send.side_effect = [5, 10, 7, 8]
     sock_mock().recv.side_effect = [b'ACommandWithP',
                                     b'arameters:',
@@ -79,7 +79,7 @@ def test__send__FullMessages(sock_mock):
 
 
 @patch('socket.socket')
-def test__send__PartialMessages(sock_mock):
+def test__send__NoDelimMessage(sock_mock):
     # The test assume that the socket is always correctly connected when
     # fileno is queried
     sock_mock().fileno.return_value = 11
