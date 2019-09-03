@@ -3,7 +3,7 @@
 import io
 import os
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 # Package meta-data.
 NAME = 'emacontrol'
@@ -60,9 +60,9 @@ setup(
     author_email=EMAIL,
     python_requires=REQUIRES_PYTHON,
     url=URL,
-    # packages=find_packages(exclude=('tests',)),
+    packages=find_packages(exclude=('tests',)),
     # If your package is a single module, use this instead of 'packages':
-    py_modules=['emaapi'],
+    # py_modules=['emaapi'],
     # # We don't want emaapi to be run as a script - it should be imported!
     # # So there is no entry in entry_points
     # entry_points={
