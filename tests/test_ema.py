@@ -110,13 +110,20 @@ def test_message_parser():
                       'state': {'X': 1.432, 'Y': 2.643, 'Z': 0.53}}
 
 
-def test_vector_calc():
-    samx = 0.5
+def test_diffr_pos_to_xyz():
+    assert Robot._diffr_pos_to_xyz(0, 0, 0, 0, 0, 0) == (0.0, 0.0, 0.0)
+
+    # @ om = 0: z along beam, x outboard (//diffh), y upward (// diffv)
+    # om (assumed) clockwise when facing diffractometer
+    samx = 4
     samy = 1
     samz = 2
-    om = 90
-    diffh = 0.5
-    diffv = 1
+    om = 0
+    diffh = 3
+    diffv = 5
+
+    res = Robot._diffr_pos_to_xyz(samx, samy, samz, om, diffh, diffv)
+    assert res == (7.0, 6.0, 2.0)
 
     res = Robot._vector_calc(samx, samy, samz, om, diffh, diffv)
     assert res == (1.0, 1.0, 1.0)

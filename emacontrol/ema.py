@@ -189,11 +189,32 @@ class Robot(SocketConnector):
         return {'command': command, 'result': result, 'state': state}
 
     @staticmethod
-    def _vector_calc(samx, samy, samz, om, diffh, diffv):
-        # TODO Add docstring!
-        # TODO Should this already calc position based on known position?
-        spin_x = diffh + samx
-        spin_y = diffv * np.cos(np.radians(-om)) + samy
-        spin_z = diffv * np.sin(np.radians(-om)) + samz
+    def _diffr_pos_to_xyz(samx, samy, samz, om, diffh, diffv):
+        """
+        Converts the diffractometer axis positions to xyz equivalents in mm
+
+        Parameters
+        ----------
+        samx : float
+        Sample goniometer X axis position in mm
+        samy : float
+        Sample goniometer Y axis position in mm
+        samz : float
+        Sample goniometer Z axis position in mm
+        om : float
+        Sample omega axis position in degrees
+        diffh : float
+        Diffractometer horizontal axis position in mm
+        diffv : float
+        Diffractometer vertical axis position in mm
+        """
+        spin_x = samx + diffh
+        spin_y = (samy * np.cos(np.radians(-om)) + samz * np.sin(np.radians(-om))) + diffv
+        spin_z = (samy * np.sin(np.radians(-om)) + samz * np.cos(np.radians(-om)))
 
         return (spin_x, spin_y, spin_z)
+
+# Martin's original algorithm to calculate spinner position. It's wrong, but might be useful.
+# spin_x = diffh + samx
+# spin_y = diffv * np.cos(np.radians(-om)) + samy
+# spin_z = diffv * np.sin(np.radians(-om)) + samz
