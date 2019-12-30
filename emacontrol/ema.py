@@ -1,6 +1,8 @@
 import os
 import re
 
+from collections import namedtuple
+
 from emacontrol.network import SocketConnector
 from emacontrol.utils import input_to_int
 
