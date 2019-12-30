@@ -191,7 +191,8 @@ class Robot(SocketConnector):
     @staticmethod
     def _diffr_pos_to_xyz(samx, samy, samz, om, diffh, diffv):
         """
-        Converts the diffractometer axis positions to xyz equivalents in mm
+        Converts the diffractometer axis positions to xyz equivalents in mm.
+        Results are rounded to the nearest micron.
 
         Parameters
         ----------
@@ -207,10 +208,15 @@ class Robot(SocketConnector):
         Diffractometer horizontal axis position in mm
         diffv : float
         Diffractometer vertical axis position in mm
+
+        Returns
+        -------
+        spinner_coords : tuple of ints
+        The spinner cartesian coordinates as a tuple (shape (3,1)) in mm
         """
-        spin_x = samx + diffh
-        spin_y = (samy * np.cos(np.radians(-om)) + samz * np.sin(np.radians(-om))) + diffv
-        spin_z = (samy * np.sin(np.radians(-om)) + samz * np.cos(np.radians(-om)))
+        spin_x = np.round(samx + diffh, 3)
+        spin_y = np.round((samy * np.cos(np.radians(-om)) - samz * np.sin(np.radians(-om))) + diffv, 3)
+        spin_z = np.round((samy * np.sin(np.radians(-om)) + samz * np.cos(np.radians(-om))), 3)
 
         return (spin_x, spin_y, spin_z)
 

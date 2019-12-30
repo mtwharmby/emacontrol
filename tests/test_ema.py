@@ -115,6 +115,39 @@ def test_diffr_pos_to_xyz():
 
     # @ om = 0: z along beam, x outboard (//diffh), y upward (// diffv)
     # om (assumed) clockwise when facing diffractometer
+    samx = 4.0
+    samy = 1.0
+    samz = 2.0
+    om = 0.0
+    diffh = 3.0
+    diffv = 5.0
+
+    res = Robot._diffr_pos_to_xyz(samx, samy, samz, om, diffh, diffv)
+    print('{}: {}'.format(om, res))
+    assert res == (samx + diffh, samy + diffv, samz)
+
+    om = 90.0  # x outboard (// diffh); y // -z0; z // y0 (//diffv);
+    res = Robot._diffr_pos_to_xyz(samx, samy, samz, om, diffh, diffv)
+    print('{}: {}'.format(om, res))
+    assert res == (samx + diffh, samz + diffv, -samy)
+
+    om = 180.0  # x outboard (// diffh); y // -y0; z // -z0
+    res = Robot._diffr_pos_to_xyz(samx, samy, samz, om, diffh, diffv)
+    print('{}: {}'.format(om, res))
+    assert res == (samx + diffh, -samy + diffv, -samz)
+
+    om = 270.0  # x outboard (// diffh); y // z0; z // -y0
+    res = Robot._diffr_pos_to_xyz(samx, samy, samz, om, diffh, diffv)
+    print('{}: {}'.format(om, res))
+    assert res == (samx + diffh, -samz + diffv, samy)
+
+    om = 120  # z slightly down and downstream; x up and downstream
+    res = Robot._diffr_pos_to_xyz(samx, samy, samz, om, diffh, diffv)
+    print('{}: {}'.format(om, res))
+    assert res == (7.0, 6.232, -1.866)
+
+
+def test_set_spinner_coords():
     samx = 4
     samy = 1
     samz = 2
@@ -122,23 +155,9 @@ def test_diffr_pos_to_xyz():
     diffh = 3
     diffv = 5
 
-    res = Robot._diffr_pos_to_xyz(samx, samy, samz, om, diffh, diffv)
-    assert res == (7.0, 6.0, 2.0)
-
-    res = Robot._vector_calc(samx, samy, samz, om, diffh, diffv)
-    assert res == (1.0, 1.0, 1.0)
-
-
-def test_set_spinner_coords():
-    samx = 0.5
-    samy = 1
-    samz = 2
-    om = 90
-    diffh = 0.5
-    diffv = 1
-
     with patch('emacontrol.emaapi.Robot.send') as send_mock:
         ema = Robot()
         ema.set_spinner_coords(samx, samy, samz, om, diffh, diffv)
-        send_mock.assert_called_with('setSpinnerCoords:#X1.00000#Y1.00000#Z1.00000;',
+        send_mock.assert_called_with(('setSpinnerCoords:#X7.00000#Y6.00000'
+                                      + '#Z2.00000;'),
                                      wait_for='setSpinnerCoords:done;')
