@@ -208,6 +208,9 @@ class Robot(SocketConnector):
         Diffractometer horizontal axis position in mm
         diffv : float
         Diffractometer vertical axis position in mm
+        rotate_sense : int
+        Sense of rotation. Should have a value of 1 (clockwise) or -1 (counter-
+        clockwise)
 
         Returns
         -------
@@ -215,8 +218,12 @@ class Robot(SocketConnector):
         The spinner cartesian coordinates as a tuple (shape (3,1)) in mm
         """
         spin_x = np.round(samx + diffh, 3)
-        spin_y = np.round((samy * np.cos(np.radians(-om)) - samz * np.sin(np.radians(-om))) + diffv, 3)
-        spin_z = np.round((samy * np.sin(np.radians(-om)) + samz * np.cos(np.radians(-om))), 3)
+        spin_y = np.round((samy * np.cos(np.radians((rotate_sense * -om)))
+                           - samz * np.sin(np.radians((rotate_sense * -om)))
+                           ) + diffv, 3)
+        spin_z = np.round((samy * np.sin(np.radians((rotate_sense * -om)))
+                           + samz * np.cos(np.radians((rotate_sense * -om)))
+                           ), 3)
 
         return (spin_x, spin_y, spin_z)
 
