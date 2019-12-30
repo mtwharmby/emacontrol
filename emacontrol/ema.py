@@ -42,10 +42,13 @@ class Robot(SocketConnector):
 
         Parameters
         ----------
-        message : String message to send to the controller
-        wait_for : String message to wait for the controller to send back
-        parse : Bool should received message be run through message_parser to
-                     check for errors
+        message : String
+        Sent to the controller
+        wait_for : String
+        Message to wait for the controller to send back
+        parse : boolean
+        Should received message be run through message_parser to check for
+        errors.
         '''
         recvd_msg = self.__send__(message)
         if parse:
@@ -76,8 +79,10 @@ class Robot(SocketConnector):
 
         Parameters
         ----------
-        n : integer index of the sample to pick
-        verbose : boolean if true prints the sample coordinates to screen
+        n : integer
+        Index of the sample to pick
+        verbose : boolean
+        If true prints the sample coordinates to screen
         """
         self.sample_index = n
         x_coord, y_coord = Robot.samplenr_to_xy(n)
@@ -140,7 +145,8 @@ class Robot(SocketConnector):
 
         Returns
         -------
-        tuple of integers : x & y coordinates
+        coordinates : tuple of integers
+        x & y coordinates
 
         Raises
         ------
@@ -163,18 +169,21 @@ class Robot(SocketConnector):
         Messages have three formats:
         command:result;
         command:#parameters;
-        command:result_status';
+        command:result_'status';
 
-        Parameters are separated out with either given names or increasing
-        integers and passed into a dictionary.
+        Parameters are separated out and passed into a dictionary, with the
+        keys either the given names from the message or integers increasing
+        from 0.
 
         Parameters
         ----------
-        message : String to parse
+        message : String
+        Message to be parsed
 
         Returns
         -------
-        response : namedtuple Response (command; result; status)
+        response : namedtuple
+        Response (command; result; status)
         """
         command, response = message.strip(';').split(':')
         result = ''
