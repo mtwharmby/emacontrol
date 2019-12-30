@@ -87,10 +87,23 @@ class Robot(SocketConnector):
                   wait_for='setCoords:done;')
 
     def get_spinner_coords(self):
-        # TODO Add docstring!
+        """
+        Reads and returns the coordinates stored for the spinner position of
+        the robot.
+
+        Returns
+        -------
+        coords : tuple
+        x, y, z coordinates of the spinner.
+        """
         spin_coords = self.send('getSpinnerCoords;')
-        _, state, _ = Robot.parse_message(spin_coords)
-        # TODO Finish me!
+
+        _, _, state = Robot.parse_message(spin_coords)
+        coords = []
+        for key in ['X', 'Y', 'Z']:
+            val = float(state[key])
+            coords.append(val)
+        return tuple(coords)
 
     def set_spinner_coords(self, samx, samy, samz, om, diffh, diffv,
                            verbose=False):

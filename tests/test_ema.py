@@ -63,6 +63,14 @@ def test_set_sample_coords():
                                      wait_for='setCoords:done;')
 
 
+def test_get_spinner_coords():
+    with patch('emacontrol.emaapi.Robot.send') as send_mock:
+        ema = Robot()
+        send_mock.return_value = "getSpinnerCoords:#X26.785#Y52.111#Z86.146;"
+        res = ema.get_spinner_coords()
+        assert res == (26.785, 52.111, 86.146)
+
+
 # Method supports set_sample_coords
 def test_sample_to_coords():
     # Some specific examples of coords calculated...
