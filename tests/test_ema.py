@@ -114,7 +114,7 @@ def test_diffr_pos_to_xyz():
     assert Robot._diffr_pos_to_xyz(0, 0, 0, 0, 0, 0) == (0.0, 0.0, 0.0)
 
     # @ om = 0: z along beam, x outboard (//diffh), y upward (// diffv)
-    # om (assumed) clockwise when facing diffractometer
+    # om (assumed and defaulted to) clockwise when facing diffractometer
     samx = 4.0
     samy = 1.0
     samz = 2.0

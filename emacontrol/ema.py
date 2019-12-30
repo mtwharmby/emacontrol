@@ -96,7 +96,9 @@ class Robot(SocketConnector):
     def set_spinner_coords(self, samx, samy, samz, om, diffh, diffv,
                            verbose=False):
         # TODO Add docstring!
-        spinner_coords = Robot._vector_calc(samx, samy, samz, om, diffh, diffv)
+        # FIXME Is this doing the right thing?
+        spinner_coords = Robot._diffr_pos_to_xyz(samx, samy, samz, om, diffh,
+                                                 diffv)
         if verbose:
             print('Spinner coords: ({}, {}, {})'.format(*spinner_coords))
         self.send(('setSpinnerCoords:'
@@ -189,7 +191,7 @@ class Robot(SocketConnector):
         return {'command': command, 'result': result, 'state': state}
 
     @staticmethod
-    def _diffr_pos_to_xyz(samx, samy, samz, om, diffh, diffv):
+    def _diffr_pos_to_xyz(samx, samy, samz, om, diffh, diffv, rotate_sense=1):
         """
         Converts the diffractometer axis positions to xyz equivalents in mm.
         Results are rounded to the nearest micron.
@@ -227,7 +229,8 @@ class Robot(SocketConnector):
 
         return (spin_x, spin_y, spin_z)
 
-# Martin's original algorithm to calculate spinner position. It's wrong, but might be useful.
+# Martin's original algorithm to calculate spinner position. It's wrong, but
+# might be useful.
 # spin_x = diffh + samx
 # spin_y = diffv * np.cos(np.radians(-om)) + samy
 # spin_z = diffv * np.sin(np.radians(-om)) + samz
