@@ -101,7 +101,7 @@ class Robot(SocketConnector):
         Returns
         -------
         coords : tuple
-        x, y, z coordinates of the spinner.
+        x, y, z coordinates of the spinner in mm.
         """
         spin_coords = self.send('getSpinnerCoords;')
 
@@ -112,17 +112,38 @@ class Robot(SocketConnector):
             coords.append(val)
         return tuple(coords)
 
-    def set_spinner_coords(self, samx, samy, samz, om, diffh, diffv,
-                           verbose=False):
-        # TODO Add docstring!
-        # FIXME Is this doing the right thing?
-        spinner_coords = Robot._diffr_pos_to_xyz(samx, samy, samz, om, diffh,
-                                                 diffv)
+    def set_spinner_coords(self, spin_x, spin_y, spin_z, verbose=False):
+        """
+        Sends new x, y and z coordinates to the robot for the spinner position
+
+        Parameters
+        ----------
+        spin_x, spin_y, spin_z : float
+        New coordinates for the spinner in mm
+        """
         if verbose:
-            print('Spinner coords: ({}, {}, {})'.format(*spinner_coords))
+            print('Spinner coords: ({}, {}, {})'.format(spin_x, spin_y,
+                                                        spin_z))
         self.send(('setSpinnerCoords:'
-                   + '#X{0:.5f}#Y{1:.5f}#Z{2:.5f};'.format(*spinner_coords)),
+                   + '#X{0:.3f}#Y{1:.3f}#Z{2:.3f};'.format(spin_x, spin_y,
+                                                           spin_z)),
                   wait_for='setSpinnerCoords:done;')
+
+    def get_gripper_coords(self):
+        """
+        Gets the current location of the gripper and returns the x, y, z
+        coordinates.
+
+        Returns
+        -------
+        coords : tuple
+        x, y, z coordinates of the gripper in mm.
+        """
+        # FIXME If we can just return the gripper coords rather than the
+        # spinner, we don't actually have to store the position of the gripper
+        # as the "spinner position". We just have to move the gripper to the
+        # right place.
+        return self.get_spinner_coords()
 
     # def isPowered(self):
     #     power_state = self.send('getPowerState;')

@@ -5,7 +5,7 @@ import sys
 
 from mock import patch
 
-from emacontrol.ema import Robot
+from emacontrol.ema import Robot, Response
 
 pathlib_path = False  # As this doesn't work with python < 3.6
 if sys.version_info[0] >= 3:
@@ -69,6 +69,15 @@ def test_get_spinner_coords():
         send_mock.return_value = "getSpinnerCoords:#X26.785#Y52.111#Z86.146;"
         res = ema.get_spinner_coords()
         assert res == (26.785, 52.111, 86.146)
+
+
+def test_set_spinner_coords():
+    with patch('emacontrol.emaapi.Robot.send') as send_mock:
+        ema = Robot()
+        ema.set_spinner_coords(7, 6, 2)
+        send_mock.assert_called_with(('setSpinnerCoords:#X7.000#Y6.000'
+                                      + '#Z2.000;'),
+                                     wait_for='setSpinnerCoords:done;')
 
 
 # Method supports set_sample_coords
