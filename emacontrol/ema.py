@@ -1,5 +1,4 @@
 import os
-import numpy as np
 import re
 
 from emacontrol.network import SocketConnector
@@ -190,11 +189,6 @@ class Robot(SocketConnector):
 
         return {'command': command, 'result': result, 'state': state}
 
-    @staticmethod
-    def _diffr_pos_to_xyz(samx, samy, samz, om, diffh, diffv, rotate_sense=1):
-        """
-        Converts the diffractometer axis positions to xyz equivalents in mm.
-        Results are rounded to the nearest micron.
 
         Parameters
         ----------
