@@ -212,19 +212,22 @@ class Robot(SocketConnector):
 
         # First handle the case we get some parameters back
         if response[0] == '#':
-            parameters = re.findall(r'[A-Za-z]+\d*\.*\d*', response)
-            for i in range(len(parameters)):
-                chars = re.search(r'[A-Za-z]+', parameters[i]).group()
-                nums = re.search(r'\d+\.*\d*', parameters[i])
+            param_parts = re.findall(
+                r'(?P<chars>[A-Za-z]+)(?P<nums>[-0-9\.]*)',
+                response
+            )
+
+            for idx, param in enumerate(param_parts):
+                chars, nums = param
 
                 # Are these named parameters? If so separate values and names
                 if nums:
                     try:
-                        state[chars] = input_to_int(nums.group())
+                        state[chars] = input_to_int(nums)
                     except ValueError:
-                        state[chars] = float(nums.group())
+                        state[chars] = float(nums)
                 else:
-                    state[i] = chars
+                    state[idx] = chars
         # Or is this just a string response?
         else:
             response = response.split('_')
