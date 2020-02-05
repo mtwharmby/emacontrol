@@ -114,6 +114,6 @@ def test_message_parser():
     assert output == Response('powerOn', 'fail',
                               {0: 'RobotPowerCannotBeSwitched'})
 
-    output = Robot.parse_message('getSAM:#X1.432#Y2.643#Z0.53;')
+    output = Robot.parse_message('getSAM:#X1.432#Y2.643#Z-0.53;')
     assert output == Response('getSAM', '', {'X': 1.432, 'Y': 2.643,
-                                             'Z': 0.53})
+                                             'Z': -0.53})
