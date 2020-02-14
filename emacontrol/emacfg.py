@@ -89,7 +89,8 @@ def diffr_pos_to_xyz(samx, samy, samz, om, diffh, diffv, rotate_sense=1):
     return CoordsXYZ(spin_x, spin_y, spin_z)
 
 
-def calibrate_spinner(samx, samy, samz, om, diffh, diffv, rotate_sense=1):
+def calibrate_spinner(samx, samy, samz, om, diffh, diffv, rotate_sense=1,
+                      set_origin=False):
     """
     Calibrate the positions of the spinner and the diffractometer relative to
     one-another.
@@ -117,6 +118,8 @@ def calibrate_spinner(samx, samy, samz, om, diffh, diffv, rotate_sense=1):
     rotate_sense : int
     Sense of rotation. Should have a value of 1 (clockwise) or -1 (counter-
     clockwise)
+    set_origin : bool
+    Write a new diffractometer origin to the config file.
     """
     diffr_calib_xyz = diffr_pos_to_xyz(samx, samy, samz, om, diffh, diffv,
                                        rotate_sense=rotate_sense)
@@ -127,6 +130,12 @@ def calibrate_spinner(samx, samy, samz, om, diffh, diffv, rotate_sense=1):
         spin_position['y'],
         spin_position['z'])
     ema_config.set_position('spin_calib_xyz', spin_calib_xyz)
+
+    diffr_robot_origin = CoordsXYZ(
+        *np.subtract(spin_calib_xyz, diffr_calib_xyz)
+    )
+    if set_origin:
+        ema_config.set_position('diffr_robot_origin', diffr_robot_origin)
 
     update_spinner(samx, samy, samz, om, diffh, diffv,
                    rotate_sense=rotate_sense)

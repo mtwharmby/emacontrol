@@ -183,6 +183,11 @@ def test_calibrate_spinner(robo_cfg):
             wait_for='setSpinPositionOffset:done;'
         )
 
+        # Check origin setting works correctly
+        samz = 7.0
+        calibrate_spinner(samx, samy, samz, om, diffh, diffv, set_origin=True)
+        assert_cfg_contains(robo_cfg, 'positions',
+                            'diffr_robot_origin', '22.47,50.322,70.5')    
 
 def test_update_spinner(robo_cfg):
     samx = 4.0
