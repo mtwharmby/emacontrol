@@ -100,7 +100,8 @@ def robo_cfg():
         'positions',
         kv_dict={
             'diffr_home': '7.0,6.232,-1.866',
-            'diffr_calib_xyz': '0,0,0'
+            'diffr_calib_xyz': '0,0,0',
+            'diffr_robot_origin': '22.47,50.322,76.5'
         },
         update=False
     )
