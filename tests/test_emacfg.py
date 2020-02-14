@@ -179,7 +179,6 @@ def test_update_spinner(robo_cfg):
     update_robo_cfg('positions',
                     key='diffr_calib_xyz',
                     value='1.234,5.678,9.012')
-    print(emacfg.ema_config.get_position('diffr_calib_xyz'))
 
     with patch('emacontrol.emaapi.Robot.send') as send_mock:
         update_spinner(samx, samy, samz, om, diffh, diffv)
