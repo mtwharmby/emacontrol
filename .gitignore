@@ -111,3 +111,6 @@ ENV/
 # VSCode
 .vscode/
 .pytest_cache/
+
+# Test resources
+tests/resources
