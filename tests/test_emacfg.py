@@ -138,6 +138,12 @@ def update_robo_cfg(section, key=None, value=None, kv_dict=None, update=True):
     return test_cfg
 
 
+def assert_cfg_contains(cfg, section, key, value):
+    config = configparser.ConfigParser()
+    config.read(cfg)
+    assert config[section][key] == value
+
+
 def test_get_config_position(robo_cfg):
     assert (emacfg.ema_config.
             get_position('diffr_home') == CoordsXYZ(7.0, 6.232, -1.866)
@@ -150,7 +156,7 @@ def test_set_config_position(robo_cfg):
 
     config = configparser.ConfigParser()
     config.read(robo_cfg)
-    assert config['positions']['squirrel'] == '1.1,5,3.3'
+    assert_cfg_contains(robo_cfg, 'positions', 'squirrel', '1.1,5,3.3')
 
 
 
