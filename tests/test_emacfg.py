@@ -91,11 +91,28 @@ def test_diffr_pos_to_xyz_CCW():
 @pytest.fixture
 def robo_cfg():
     """
-    Returns the path to the mock_online.xml in the test_resources directory
+    Creates a default config file for use with all tests. This file can be
+    updated using the update_robo_cfg function.
     """
-    config = configparser.ConfigParser()
-    config['positions'] = {'diffr_home': '7.0,6.232,-1.866'}
+    test_cfg = update_robo_cfg(
+        'positions',
+        kv_dict={
+            'diffr_home': '7.0,6.232,-1.866',
+            'diffr_calib_xyz': '0,0,0'
+        },
+        update=False
+    )
+    # Replace ema_config in emacfg for tests
+    emacfg.ema_config = emacfg.ConfigEditor(test_cfg)
 
+    return test_cfg
+
+
+def update_robo_cfg(section, key=None, value=None, kv_dict=None, update=True):
+    """
+    Updates an existing robo_cfg file with either a key:value pair or a
+    dictionary thereof
+    """
     test_path = os.path.dirname(__file__)
     test_cfg = os.path.normpath(os.path.join(test_path, 'resources',
                                              'test_cfg.ini'))
@@ -103,10 +120,18 @@ def robo_cfg():
     if not os.path.exists(res_path):
         os.makedirs(res_path)
 
-    with open(test_cfg, 'w') as cfg_file:
-        config.write(cfg_file)
+    config = configparser.ConfigParser()
+    # Existing config files need to be read first to update
+    if update:
+        config.read(test_cfg)
 
-    emacfg.ema_config = emacfg.ConfigEditor(test_cfg)
+    if kv_dict:
+        config[section] = kv_dict
+    if key and value:
+        config[section][key] = value
+
+    with open(test_cfg, 'w') as test_cfg_fp:
+        config.write(test_cfg_fp)
 
     return test_cfg
 
