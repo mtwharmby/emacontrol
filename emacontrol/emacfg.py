@@ -103,7 +103,7 @@ def diffr_pos_to_xyz(samx, samy, samz, om, diffh, diffv, rotate_sense=1):
 
 
 def calibrate_spinner(samx, samy, samz, om, diffh, diffv, rotate_sense=1,
-                      set_origin=False):
+                      set_origin=False, set_spin_pos=False):
     """
     Calibrate the positions of the spinner and the diffractometer relative to
     one-another.
@@ -139,13 +139,20 @@ def calibrate_spinner(samx, samy, samz, om, diffh, diffv, rotate_sense=1,
     clockwise)
     set_origin : bool
     Write a new diffractometer origin to the config file.
+    set_spin_pos : bool
+    Set the SpinnerHome position of the robot to the current position of the
+    spinner.
     """
     # Calculate new vector between the goniometer 0 and the spinner position
     diffr_calib_xyz = diffr_pos_to_xyz(samx, samy, samz, om, diffh, diffv,
                                        rotate_sense=rotate_sense)
     ema_config.set_position('diffr_calib_xyz', diffr_calib_xyz)
 
-    spin_position = ema.get_spin_position()
+    # Get and store the spinner position
+    if set_spin_pos:
+        raise NotImplementedError('Need SetSpinnerHome method')
+    else:
+        spin_position = ema.get_spin_position()
     spin_calib_xyz = CoordsXYZ(
         spin_position['x'],
         spin_position['y'],
