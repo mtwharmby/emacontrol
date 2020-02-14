@@ -152,6 +152,8 @@ def test_set_config_position(robo_cfg):
     config.read(robo_cfg)
     assert config['positions']['squirrel'] == '1.1,5,3.3'
 
+
+
 def test_update_spinner(robo_cfg):
     samx = 4.0
     samy = 1.0
@@ -164,5 +166,18 @@ def test_update_spinner(robo_cfg):
         update_spinner(samx, samy, samz, om, diffh, diffv)
         send_mock.assert_called_with(
             'setSpinPositionOffset:#X7.000#Y6.232#Z-1.866;',
+            wait_for='setSpinPositionOffset:done;'
+        )
+
+    # Move the calibrated diffractometer position to 1.234,5.678,9.012
+    update_robo_cfg('positions',
+                    key='diffr_calib_xyz',
+                    value='1.234,5.678,9.012')
+    print(emacfg.ema_config.get_position('diffr_calib_xyz'))
+
+    with patch('emacontrol.emaapi.Robot.send') as send_mock:
+        update_spinner(samx, samy, samz, om, diffh, diffv)
+        send_mock.assert_called_with(
+            'setSpinPositionOffset:#X5.766#Y0.554#Z-10.878;',
             wait_for='setSpinPositionOffset:done;'
         )
