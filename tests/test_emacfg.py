@@ -101,7 +101,8 @@ def robo_cfg():
         kv_dict={
             'diffr_home': '7.0,6.232,-1.866',
             'diffr_calib_xyz': '0,0,0',
-            'diffr_robot_origin': '22.47,50.322,76.5'
+            'diffr_robot_origin_xyz': '22.47,50.322,76.5',
+            'spin_calib_xyz': '22.47,50.322,76.5'
         },
         update=False
     )
@@ -173,6 +174,10 @@ def test_calibrate_spinner(robo_cfg):
             'getSpinPosition:#X29.47#Y57.322#Z77.5#RX0.841#RY89.653#RZ-0.064;'
         )
 
+        # Use the diffractometer coordinates and the provided spinner position
+        # to determine a new diffractometer-robot calibration. Should update
+        # the diffractometer-SpinnerPosition distance and the SpinnerPositions
+        # only. As there's a new calibration, offset should be zero too.
         calibrate_spinner(samx, samy, samz, om, diffh, diffv)
 
         assert_cfg_contains(robo_cfg, 'positions',
@@ -184,11 +189,12 @@ def test_calibrate_spinner(robo_cfg):
             wait_for='setSpinPositionOffset:done;'
         )
 
-        # Check origin setting works correctly
+        # Do the same thing, but this time set the origin as well
         samz = 7.0
         calibrate_spinner(samx, samy, samz, om, diffh, diffv, set_origin=True)
         assert_cfg_contains(robo_cfg, 'positions',
-                            'diffr_robot_origin', '22.47,50.322,70.5')
+                            'diffr_robot_origin_xyz', '22.47,50.322,70.5')
+
 
 def test_update_spinner(robo_cfg):
     samx = 4.0
@@ -199,16 +205,24 @@ def test_update_spinner(robo_cfg):
     diffv = 5.0
 
     with patch('emacontrol.emaapi.Robot.send') as send_mock:
+        # Based on given diffractometer coords and the recorded
+        # spinner/diffractometer positions, send an offset to the robot
+        # SpinnerPosition.
         update_spinner(samx, samy, samz, om, diffh, diffv)
         send_mock.assert_called_with(
             'setSpinPositionOffset:#X7.000#Y6.232#Z-1.866;',
             wait_for='setSpinPositionOffset:done;'
         )
 
+    # Try a non-zero distance between diffractometer origin and spinner:
     # Move the calibrated diffractometer position to 1.234,5.678,9.012
+    # and update spin_calib_xyz by the same amount - otherwise errors!
     update_robo_cfg('positions',
                     key='diffr_calib_xyz',
                     value='1.234,5.678,9.012')
+    update_robo_cfg('positions',
+                    key='spin_calib_xyz',
+                    value='23.704,56.0,85.512')
 
     with patch('emacontrol.emaapi.Robot.send') as send_mock:
         update_spinner(samx, samy, samz, om, diffh, diffv)
@@ -216,3 +230,22 @@ def test_update_spinner(robo_cfg):
             'setSpinPositionOffset:#X5.766#Y0.554#Z-10.878;',
             wait_for='setSpinPositionOffset:done;'
         )
+
+
+def test_origin_checking(robo_cfg):
+    samx = 4.0
+    samy = 1.0
+    samz = 2.0
+    om = 120.0
+    diffh = 3.0
+    diffv = 5.0
+
+    # Move the calibrated diffractometer position to 1.234,5.678,9.012
+    update_robo_cfg('positions',
+                    key='diffr_calib_xyz',
+                    value='1.234,5.678,9.012')
+
+    with pytest.raises(RuntimeError, match=r".* different origin .*"):
+        # Throws error an the spin_calib_xyz has not also been changed
+        # --> diffr_calib_xyz is no longer valid
+        update_spinner(samx, samy, samz, om, diffh, diffv)

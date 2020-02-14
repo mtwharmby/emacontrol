@@ -108,11 +108,17 @@ def calibrate_spinner(samx, samy, samz, om, diffh, diffv, rotate_sense=1,
     Calibrate the positions of the spinner and the diffractometer relative to
     one-another.
 
-    The given diffractometer coordinates are used stored to be used
-    subsequently to calculate the offset required to move the robot's
-    SpinnerPosition to bring spinner and diffactometer into alignment if
-    moved. The update_spinner function is used to reset the current spinner
-    offset to 0,0,0.
+    The given diffractometer coordinates used to find the vector between
+    diffractometer origin and the robot SpinnerHomePosition. This value is
+    stored along with the absolute positions (in the robot coordinate system)
+    of the diffractometer origin and the robot SpinnerHomePosition. The
+    calibration values are used to calculate the offset which needs to be
+    applied to the SpinnerHomePosition to move it to the goniometer head
+    aligned to the beam. The update_spinner method is used to reset the
+    current values of the offset to 0,0,0.
+
+    If the old diffractometer origin is to be used after calibration, a check
+    is made that the origin is still valid.
 
     Parameters
     ----------
@@ -134,6 +140,7 @@ def calibrate_spinner(samx, samy, samz, om, diffh, diffv, rotate_sense=1,
     set_origin : bool
     Write a new diffractometer origin to the config file.
     """
+    # Calculate new vector between the goniometer 0 and the spinner position
     diffr_calib_xyz = diffr_pos_to_xyz(samx, samy, samz, om, diffh, diffv,
                                        rotate_sense=rotate_sense)
     ema_config.set_position('diffr_calib_xyz', diffr_calib_xyz)
@@ -145,21 +152,45 @@ def calibrate_spinner(samx, samy, samz, om, diffh, diffv, rotate_sense=1,
         spin_position['z'])
     ema_config.set_position('spin_calib_xyz', spin_calib_xyz)
 
+    # Calculate the diffractometer origin position in robot coordinates from
+    # the two previously stored values
     diffr_robot_origin = CoordsXYZ(
         *np.subtract(spin_calib_xyz, diffr_calib_xyz)
     )
+    # Diffractometer origin shouldn't change, so it doesn't have to be set
+    # every time
     if set_origin:
-        ema_config.set_position('diffr_robot_origin', diffr_robot_origin)
+        # After setting the origin, we don't want to run the origin check as
+        # there's no point
+        ema_config.set_position('diffr_robot_origin_xyz', diffr_robot_origin)
+        run_checks = False
+    else:
+        # Check that the diffractometer origin is still the same and also
+        # allow check of diffr_calib_xyz when updating spinner position
+        robot_origin_xyz = ema_config.get_position('diffr_robot_origin_xyz')
+        if not np.allclose(diffr_robot_origin, robot_origin_xyz, atol=0.02):
+            raise RuntimeError('Unexpected change of diffractometer origin')
 
+        run_checks = True
+
+    # Supporting values have been updated. The new offset can be applied to
+    # the robot SpinnerPosition
     update_spinner(samx, samy, samz, om, diffh, diffv,
-                   rotate_sense=rotate_sense)
+                   rotate_sense=rotate_sense, run_checks=run_checks)
 
-def update_spinner(samx, samy, samz, om, diffh, diffv, rotate_sense=1):
+
+def update_spinner(samx, samy, samz, om, diffh, diffv, rotate_sense=1,
+                   run_checks=True):
     """
     Given a set of diffractometer coordinates, calculates the offset necessary
     to align the robot SpinnerPosition with the goniometer head.
 
-    Offset is calculated relative to the stored diffr_calib_xyz value.
+    The offset is calculated relative to the stored diffr_calib_xyz value. The
+    validity of the stored value is checked by applying the calculated offset
+    to the stored spin_calib_xyz position and then subtracting the diffr_xyz
+    (calculated from the supplied diffractometer coordinates) to arrive at the
+    diffractometer origin. This should be the same as the recorded value. If
+    not, an error is thrown.
 
     Parameters
     ----------
@@ -183,6 +214,25 @@ def update_spinner(samx, samy, samz, om, diffh, diffv, rotate_sense=1):
                                  rotate_sense=rotate_sense)
     diffr_calib_xyz = ema_config.get_position('diffr_calib_xyz')
     diffr_offset = CoordsXYZ(*np.subtract(diffr_xyz, diffr_calib_xyz))
+
+    if run_checks:
+        # We check that diffr_calib_xyz is still valid for the offset we're
+        # applying (i.e. the diffractometer origin has not changed)
+        spin_calib_xyz = ema_config.get_position('spin_calib_xyz')
+        spin_pos_xyz = np.add(diffr_offset, spin_calib_xyz)
+        maybe_robot_origin = np.subtract(spin_pos_xyz, diffr_xyz)
+
+        # The difference between the absolute spinner position and the current
+        # diffr_xyz should be the same as the diffr_robot_origin_xyz. If it's
+        # not, something has moved
+        robot_origin_xyz = ema_config.get_position('diffr_robot_origin_xyz')
+
+        origin_diff = maybe_robot_origin - robot_origin_xyz
+        # Difference should be zero +/- 20 microns (half robot precision)
+        if not np.allclose(origin_diff, np.array([0, 0, 0]), atol=0.02):
+            raise RuntimeError(
+                ('Requested spinner offset has different origin'
+                 + ' to calibration by: {}'.format(origin_diff)))
 
     ema.set_spin_position_offset(diffr_offset.x,
                                  diffr_offset.y,
