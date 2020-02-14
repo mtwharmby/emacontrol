@@ -5,6 +5,8 @@ import numpy as np
 
 from collections import namedtuple
 
+from emacontrol.emaapi import ema  # FIXME Move to __init__.py
+
 
 # From ema.py  TODO Move to __init__.py
 default_config = os.path.join(os.path.expanduser('~'), '.robot.ini')
