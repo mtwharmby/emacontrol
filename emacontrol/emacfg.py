@@ -88,8 +88,13 @@ def diffr_pos_to_xyz(samx, samy, samz, om, diffh, diffv, rotate_sense=1):
 
     return CoordsXYZ(spin_x, spin_y, spin_z)
 
-# Martin's original algorithm to calculate spinner position. It's wrong, but
-# might be useful.
-# spin_x = diffh + samx
-# spin_y = diffv * np.cos(np.radians(-om)) + samy
-# spin_z = diffv * np.sin(np.radians(-om)) + samz
+
+def update_spinner(samx, samy, samz, om, diffh, diffv, rotate_sense=1):
+    diffr_xyz = diffr_pos_to_xyz(samx, samy, samz, om, diffh, diffv,
+                                 rotate_sense=rotate_sense)
+    diffr_calib_xyz = ema_config.get_position('diffr_calib_xyz')
+    diffr_offset = CoordsXYZ(*np.subtract(diffr_xyz, diffr_calib_xyz))
+
+    ema.set_spin_position_offset(diffr_offset.x,
+                                 diffr_offset.y,
+                                 diffr_offset.z)

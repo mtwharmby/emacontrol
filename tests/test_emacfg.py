@@ -2,8 +2,10 @@ import configparser
 import os
 import pytest
 
+from mock import patch
+
 import emacontrol.emacfg as emacfg
-from emacontrol.emacfg import CoordsXYZ, diffr_pos_to_xyz
+from emacontrol.emacfg import CoordsXYZ, diffr_pos_to_xyz, update_spinner
 
 
 def test_diffr_pos_to_xyz():
@@ -149,3 +151,18 @@ def test_set_config_position(robo_cfg):
     config = configparser.ConfigParser()
     config.read(robo_cfg)
     assert config['positions']['squirrel'] == '1.1,5,3.3'
+
+def test_update_spinner(robo_cfg):
+    samx = 4.0
+    samy = 1.0
+    samz = 2.0
+    om = 120.0
+    diffh = 3.0
+    diffv = 5.0
+
+    with patch('emacontrol.emaapi.Robot.send') as send_mock:
+        update_spinner(samx, samy, samz, om, diffh, diffv)
+        send_mock.assert_called_with(
+            'setSpinPositionOffset:#X7.000#Y6.232#Z-1.866;',
+            wait_for='setSpinPositionOffset:done;'
+        )
