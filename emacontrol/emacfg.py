@@ -88,7 +88,36 @@ def diffr_pos_to_xyz(samx, samy, samz, om, diffh, diffv, rotate_sense=1):
 
     return CoordsXYZ(spin_x, spin_y, spin_z)
 
+
 def calibrate_spinner(samx, samy, samz, om, diffh, diffv, rotate_sense=1):
+    """
+    Calibrate the positions of the spinner and the diffractometer relative to
+    one-another.
+
+    The given diffractometer coordinates are used stored to be used
+    subsequently to calculate the offset required to move the robot's
+    SpinnerPosition to bring spinner and diffactometer into alignment if
+    moved. The update_spinner function is used to reset the current spinner
+    offset to 0,0,0.
+
+    Parameters
+    ----------
+    samx : float
+    Sample goniometer X axis position in mm
+    samy : float
+    Sample goniometer Y axis position in mm
+    samz : float
+    Sample goniometer Z axis position in mm
+    om : float
+    Sample omega axis position in degrees
+    diffh : float
+    Diffractometer horizontal axis position in mm
+    diffv : float
+    Diffractometer vertical axis position in mm
+    rotate_sense : int
+    Sense of rotation. Should have a value of 1 (clockwise) or -1 (counter-
+    clockwise)
+    """
     diffr_calib_xyz = diffr_pos_to_xyz(samx, samy, samz, om, diffh, diffv,
                                        rotate_sense=rotate_sense)
     ema_config.set_position('diffr_calib_xyz', diffr_calib_xyz)
@@ -103,6 +132,30 @@ def calibrate_spinner(samx, samy, samz, om, diffh, diffv, rotate_sense=1):
                    rotate_sense=rotate_sense)
 
 def update_spinner(samx, samy, samz, om, diffh, diffv, rotate_sense=1):
+    """
+    Given a set of diffractometer coordinates, calculates the offset necessary
+    to align the robot SpinnerPosition with the goniometer head.
+
+    Offset is calculated relative to the stored diffr_calib_xyz value.
+
+    Parameters
+    ----------
+    samx : float
+    Sample goniometer X axis position in mm
+    samy : float
+    Sample goniometer Y axis position in mm
+    samz : float
+    Sample goniometer Z axis position in mm
+    om : float
+    Sample omega axis position in degrees
+    diffh : float
+    Diffractometer horizontal axis position in mm
+    diffv : float
+    Diffractometer vertical axis position in mm
+    rotate_sense : int
+    Sense of rotation. Should have a value of 1 (clockwise) or -1 (counter-
+    clockwise)
+    """
     diffr_xyz = diffr_pos_to_xyz(samx, samy, samz, om, diffh, diffv,
                                  rotate_sense=rotate_sense)
     diffr_calib_xyz = ema_config.get_position('diffr_calib_xyz')
