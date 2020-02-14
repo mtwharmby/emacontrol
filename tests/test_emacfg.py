@@ -5,7 +5,8 @@ import pytest
 from mock import patch
 
 import emacontrol.emacfg as emacfg
-from emacontrol.emacfg import CoordsXYZ, diffr_pos_to_xyz, update_spinner
+from emacontrol.emacfg import (CoordsXYZ, diffr_pos_to_xyz, update_spinner,
+                               calibrate_spinner)
 
 
 def test_diffr_pos_to_xyz():
