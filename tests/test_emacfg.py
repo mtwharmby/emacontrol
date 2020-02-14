@@ -159,6 +159,30 @@ def test_set_config_position(robo_cfg):
     assert_cfg_contains(robo_cfg, 'positions', 'squirrel', '1.1,5,3.3')
 
 
+def test_calibrate_spinner(robo_cfg):
+    samx = 2.0
+    samy = 4.0
+    samz = 1.0
+    om = 0.0
+    diffh = 5.0
+    diffv = 3.0
+
+    with patch('emacontrol.emaapi.Robot.send') as send_mock:
+        send_mock.return_value = (
+            'getSpinPosition:#X29.47#Y57.322#Z77.5#RX0.841#RY89.653#RZ-0.064;'
+        )
+
+        calibrate_spinner(samx, samy, samz, om, diffh, diffv)
+
+        assert_cfg_contains(robo_cfg, 'positions',
+                            'diffr_calib_xyz', '7.0,7.0,1.0')
+        assert_cfg_contains(robo_cfg, 'positions',
+                            'spin_calib_xyz', '29.47,57.322,77.5')
+        send_mock.assert_called_with(
+            'setSpinPositionOffset:#X0.000#Y0.000#Z0.000;',
+            wait_for='setSpinPositionOffset:done;'
+        )
+
 
 def test_update_spinner(robo_cfg):
     samx = 4.0

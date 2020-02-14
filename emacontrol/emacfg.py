@@ -88,6 +88,19 @@ def diffr_pos_to_xyz(samx, samy, samz, om, diffh, diffv, rotate_sense=1):
 
     return CoordsXYZ(spin_x, spin_y, spin_z)
 
+def calibrate_spinner(samx, samy, samz, om, diffh, diffv, rotate_sense=1):
+    diffr_calib_xyz = diffr_pos_to_xyz(samx, samy, samz, om, diffh, diffv,
+                                       rotate_sense=rotate_sense)
+    ema_config.set_position('diffr_calib_xyz', diffr_calib_xyz)
+    spin_position = ema.get_spin_position()
+    spin_calib_xyz = CoordsXYZ(
+        spin_position['x'],
+        spin_position['y'],
+        spin_position['z'])
+    ema_config.set_position('spin_calib_xyz', spin_calib_xyz)
+
+    update_spinner(samx, samy, samz, om, diffh, diffv,
+                   rotate_sense=rotate_sense)
 
 def update_spinner(samx, samy, samz, om, diffh, diffv, rotate_sense=1):
     diffr_xyz = diffr_pos_to_xyz(samx, samy, samz, om, diffh, diffv,
