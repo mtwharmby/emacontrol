@@ -16,14 +16,19 @@ class ConfigEditor():
     def __init__(self, config_file):
         self.file = config_file
         self.config = configparser.ConfigParser()
-        # self.config.sections()
-        self.config.read(config_file)
+
+    def _read_file(self):
+        with open(self.file, 'r') as cfg_file:
+            self.config.read_file(cfg_file)
+            cfg_file.close()
 
     def get_position(self, pos_name):
+        self._read_file()
         pos = self.config['positions'][pos_name]
         return CoordsXYZ(*map(float, pos.split(',')))
 
     def set_position(self, pos_name, coords):
+        self._read_file()
         coords_s = ','.join(map(str, coords))
         self.config['positions'][pos_name] = coords_s
         with open(self.file, 'w') as cfg_file:
