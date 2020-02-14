@@ -1,4 +1,3 @@
-
 import os
 import pytest
 import sys
@@ -66,7 +65,10 @@ def test_set_sample_coords():
 def test_get_spin_home_position():
     with patch('emacontrol.emaapi.Robot.send') as send_mock:
         ema = Robot()
-        send_mock.return_value = 'getSpinHomePosition:#X26.785#Y52.111#Z86.146#RX0.841#RY89.653#RZ-0.064;'
+        send_mock.return_value = (
+            'getSpinHomePosition:#X26.785#Y52.111#Z86.146#RX0.841#RY89.653'
+            + '#RZ-0.064;'
+        )
         res = ema.get_spin_home_position()
         assert res == {'x': 26.785, 'y': 52.111, 'z': 86.146,
                        'rx': 0.841, 'ry': 89.653, 'rz': -0.064}
@@ -75,7 +77,9 @@ def test_get_spin_home_position():
 def test_get_spin_position():
     with patch('emacontrol.emaapi.Robot.send') as send_mock:
         ema = Robot()
-        send_mock.return_value = 'getSpinPosition:#X29.47#Y57.322#Z77.5#RX0.841#RY89.653#RZ-0.064;'
+        send_mock.return_value = (
+            'getSpinPosition:#X29.47#Y57.322#Z77.5#RX0.841#RY89.653#RZ-0.064;'
+        )
         res = ema.get_spin_position()
         assert res == {'x': 29.47, 'y': 57.322, 'z': 77.5,
                        'rx': 0.841, 'ry': 89.653, 'rz': -0.064}
@@ -84,7 +88,9 @@ def test_get_spin_position():
 def test_get_spin_position_offset():
     with patch('emacontrol.emaapi.Robot.send') as send_mock:
         ema = Robot()
-        send_mock.return_value = 'getSpinPositionOffset:#X2.685#Y5.211#Z-8.646;'
+        send_mock.return_value = (
+            'getSpinPositionOffset:#X2.685#Y5.211#Z-8.646;'
+        )
         res = ema.get_spin_position_offset()
         assert res == {'x': 2.685, 'y': 5.211, 'z': -8.646}
 
