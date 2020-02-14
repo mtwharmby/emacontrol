@@ -1,3 +1,8 @@
+import configparser
+import os
+import pytest
+
+import emacontrol.emacfg as emacfg
 from emacontrol.emacfg import CoordsXYZ, diffr_pos_to_xyz
 
 
@@ -81,3 +86,42 @@ def test_diffr_pos_to_xyz_CCW():
                            rotate_sense=-1)
     print('{}: {}'.format(om, res))
     assert res == CoordsXYZ(7.0, 2.768, -0.134)
+
+
+@pytest.fixture
+def robo_cfg():
+    """
+    Returns the path to the mock_online.xml in the test_resources directory
+    """
+    config = configparser.ConfigParser()
+    config['positions'] = {'diffr_home': '7.0,6.232,-1.866'}
+
+    test_path = os.path.dirname(__file__)
+    test_cfg = os.path.normpath(os.path.join(test_path, 'resources',
+                                             'test_cfg.ini'))
+    res_path = os.path.dirname(test_cfg)
+    if not os.path.exists(res_path):
+        os.makedirs(res_path)
+
+    with open(test_cfg, 'w') as cfg_file:
+        config.write(cfg_file)
+
+    emacfg.ema_config = emacfg.ConfigEditor(test_cfg)
+
+    return test_cfg
+
+
+def test_get_config_position(robo_cfg):
+    assert (emacfg.ema_config.
+            get_position('diffr_home') == CoordsXYZ(7.0, 6.232, -1.866)
+            )
+
+
+def test_set_config_position(robo_cfg):
+    pos = CoordsXYZ(1.1, 5, 3.3)
+    emacfg.ema_config.set_position('squirrel', pos)
+
+    config = configparser.ConfigParser()
+    config.read(robo_cfg)
+    print(config.sections())
+    assert config['positions']['squirrel'] == '1.1,5,3.3'

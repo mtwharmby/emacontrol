@@ -1,6 +1,35 @@
+import configparser
+import os
+
 import numpy as np
 
 from collections import namedtuple
+
+
+# From ema.py  TODO Move to __init__.py
+default_config = os.path.join(os.path.expanduser('~'), '.robot.ini')
+
+
+class ConfigEditor():
+    def __init__(self, config_file):
+        self.file = config_file
+        self.config = configparser.ConfigParser()
+        # self.config.sections()
+        self.config.read(config_file)
+
+    def get_position(self, pos_name):
+        pos = self.config['positions'][pos_name]
+        return CoordsXYZ(*map(float, pos.split(',')))
+
+    def set_position(self, pos_name, coords):
+        coords_s = ','.join(map(str, coords))
+        self.config['positions'][pos_name] = coords_s
+        with open(self.file, 'w') as cfg_file:
+            self.config.write(cfg_file)
+
+
+ema_config = ConfigEditor(default_config)
+
 
 # Align diffractometer to beam and align robot to spinner
 # Get spinner coords in diffractometer frame and calculate in xyz frame (spin_dxyz)
