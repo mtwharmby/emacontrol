@@ -93,26 +93,31 @@ class Robot(SocketConnector):
         self.send('setCoords:#X{0:d}#Y{1:d};'.format(x_coord, y_coord),
                   wait_for='setCoords:done;')
 
-    def get_spinner_coords(self):
+    def get_spin_home_position(self):
+        spin_home = self.send('getSpinHomePosition;')
+        _, _, state = Robot.parse_message(spin_home)
+        return self._parse_state(state, ['X', 'Y', 'Z', 'RX', 'RY', 'RZ'])
+
+    def get_spin_position(self):
+        spin_pos = self.send('getSpinPosition;')
+        _, _, state = Robot.parse_message(spin_pos)
+        return self._parse_state(state, ['X', 'Y', 'Z', 'RX', 'RY', 'RZ'])
+
+    def get_spin_position_offset(self):
         """
-        Reads and returns the coordinates stored for the spinner position of
-        the robot.
+        Reads and returns the offset (trsf in VAL3) which has been applied to
+        the SpinHomePosition to set the current SpinPosition of the robot.
 
         Returns
         -------
         coords : tuple
-        x, y, z coordinates of the spinner in mm.
+        x, y, z offset in mm.
         """
-        spin_coords = self.send('getSpinnerCoords;')
+        spin_offset = self.send('getSpinnerCoords;')
+        _, _, state = Robot.parse_message(spin_offset)
+        return self._parse_state(state, ['X', 'Y', 'Z'])
 
-        _, _, state = Robot.parse_message(spin_coords)
-        coords = []
-        for key in ['X', 'Y', 'Z']:
-            val = float(state[key])
-            coords.append(val)
-        return tuple(coords)
-
-    def set_spinner_coords(self, spin_x, spin_y, spin_z, verbose=False):
+    def set_spin_position_offset(self, spin_x, spin_y, spin_z, verbose=False):
         """
         Sends new x, y and z coordinates to the robot for the spinner position
 
@@ -124,10 +129,10 @@ class Robot(SocketConnector):
         if verbose:
             print('Spinner coords: ({}, {}, {})'.format(spin_x, spin_y,
                                                         spin_z))
-        self.send(('setSpinnerCoords:'
+        self.send(('setSpinPositionOffset:'
                    + '#X{0:.3f}#Y{1:.3f}#Z{2:.3f};'.format(spin_x, spin_y,
                                                            spin_z)),
-                  wait_for='setSpinnerCoords:done;')
+                  wait_for='setSpinPositionOffset:done;')
 
     def get_gripper_coords(self):
         """
@@ -236,6 +241,11 @@ class Robot(SocketConnector):
                 state[0] = response[1].strip('\'')
 
         return Response(command, result, state)
+
+    @staticmethod
+    def _parse_state(state, axes):
+        print('State: {}'.format(state))
+        return {axis.lower(): state[axis] for axis in axes}
 
 
 # namedtuple provides storage for a parsed responses from send method
