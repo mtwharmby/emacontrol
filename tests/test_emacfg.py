@@ -107,6 +107,10 @@ def robo_cfg():
         },
         update=False
     )
+    # N.B. By default the spin_calib_xyz and the diffr_calib_xyz are at the
+    #      same position. This is because diffr_calib_xyz (i.e. the distance
+    #      calculated from the goniometer coordinates) is 0.
+
     # Replace ema_config in emacfg for tests
     emacfg.ema_config = emacfg.ConfigEditor(test_cfg)
 
@@ -142,18 +146,24 @@ def update_robo_cfg(section, key=None, value=None, kv_dict=None, update=True):
 
 
 def assert_cfg_contains(cfg, section, key, value):
+    """
+    Test whether the given config file contains a section and key with the
+    given value.
+    """
     config = configparser.ConfigParser()
     config.read(cfg)
     assert config[section][key] == value
 
 
 def test_get_config_position(robo_cfg):
+    # Read a position value with the config editor
     assert (emacfg.ema_config.
             get_position('diffr_home') == CoordsXYZ(7.0, 6.232, -1.866)
             )
 
 
 def test_set_config_position(robo_cfg):
+    # Set a position value using the config editor
     pos = CoordsXYZ(1.1, 5, 3.3)
     emacfg.ema_config.set_position('squirrel', pos)
 
