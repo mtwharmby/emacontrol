@@ -13,7 +13,16 @@ default_config = os.path.join(os.path.expanduser('~'), '.robot.ini')
 
 
 class ConfigEditor():
+
     def __init__(self, config_file):
+        """
+        Helper for reading & writing to ConfigParser configs
+
+        Parameters
+        ----------
+        config_file : String
+        Path to ini style config file.
+        """
         self.file = config_file
         self.config = configparser.ConfigParser()
 
@@ -23,11 +32,34 @@ class ConfigEditor():
             cfg_file.close()
 
     def get_position(self, pos_name):
+        """
+        Reads a position in the form x,y,z and return a CoordsXYZ
+
+        Parameters
+        ----------
+        pos_name : String
+        Name of key to read.
+
+        Returns
+        -------
+        pos : CoordsXYZ
+        Value of key.
+        """
         self._read_file()
         pos = self.config['positions'][pos_name]
         return CoordsXYZ(*map(float, pos.split(',')))
 
     def set_position(self, pos_name, coords):
+        """
+        Set value of a position from a CoordsXYZ
+
+        Parameters
+        ----------
+        pos_name : String
+        Name of key to set.
+        coords : CoordsXYZ
+        Position to be written.
+        """
         self._read_file()
         coords_s = ','.join(map(str, coords))
         self.config['positions'][pos_name] = coords_s
@@ -35,6 +67,7 @@ class ConfigEditor():
             self.config.write(cfg_file)
 
 
+# FIXME Move to __init__.py
 ema_config = ConfigEditor(default_config)
 
 
