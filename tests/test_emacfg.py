@@ -123,5 +123,4 @@ def test_set_config_position(robo_cfg):
 
     config = configparser.ConfigParser()
     config.read(robo_cfg)
-    print(config.sections())
     assert config['positions']['squirrel'] == '1.1,5,3.3'
