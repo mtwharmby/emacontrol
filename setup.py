@@ -16,7 +16,7 @@ VERSION = '1.1.0'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    'gevent',
+    'gevent', 'numpy',
 ]
 
 # What packages are optional?

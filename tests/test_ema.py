@@ -1,11 +1,10 @@
-
 import os
 import pytest
 import sys
 
 from mock import patch
 
-from emacontrol.ema import Robot
+from emacontrol.ema import Robot, Response
 
 pathlib_path = False  # As this doesn't work with python < 3.6
 if sys.version_info[0] >= 3:
@@ -63,6 +62,48 @@ def test_set_sample_coords():
                                      wait_for='setCoords:done;')
 
 
+def test_get_spin_home_position():
+    with patch('emacontrol.emaapi.Robot.send') as send_mock:
+        ema = Robot()
+        send_mock.return_value = (
+            'getSpinHomePosition:#X26.785#Y52.111#Z86.146#RX0.841#RY89.653'
+            + '#RZ-0.064;'
+        )
+        res = ema.get_spin_home_position()
+        assert res == {'x': 26.785, 'y': 52.111, 'z': 86.146,
+                       'rx': 0.841, 'ry': 89.653, 'rz': -0.064}
+
+
+def test_get_spin_position():
+    with patch('emacontrol.emaapi.Robot.send') as send_mock:
+        ema = Robot()
+        send_mock.return_value = (
+            'getSpinPosition:#X29.47#Y57.322#Z77.5#RX0.841#RY89.653#RZ-0.064;'
+        )
+        res = ema.get_spin_position()
+        assert res == {'x': 29.47, 'y': 57.322, 'z': 77.5,
+                       'rx': 0.841, 'ry': 89.653, 'rz': -0.064}
+
+
+def test_get_spin_position_offset():
+    with patch('emacontrol.emaapi.Robot.send') as send_mock:
+        ema = Robot()
+        send_mock.return_value = (
+            'getSpinPosOffset:#X2.685#Y5.211#Z-8.646;'
+        )
+        res = ema.get_spin_position_offset()
+        assert res == {'x': 2.685, 'y': 5.211, 'z': -8.646}
+
+
+def test_set_spin_position_offset():
+    with patch('emacontrol.emaapi.Robot.send') as send_mock:
+        ema = Robot()
+        ema.set_spin_position_offset(7, 6, 2)
+        send_mock.assert_called_with(('setSpinPosOffset:#X7.000#Y6.000'
+                                      + '#Z2.000;'),
+                                     wait_for='setSpinPosOffset:done;')
+
+
 # Method supports set_sample_coords
 def test_sample_to_coords():
     # Some specific examples of coords calculated...
@@ -84,22 +125,17 @@ def test_sample_to_coords():
 # Method supports send
 def test_message_parser():
     output = Robot.parse_message('setCoords:done;')
-    assert output == {'command': 'setCoords',
-                      'result': 'done',
-                      'state': {}}
+    assert output == Response('setCoords', 'done', {})
 
     output = Robot.parse_message('getPowerState:#On;')
-    assert output == {'command': 'getPowerState',
-                      'result': '',
-                      'state': {0: 'On', }}
+    assert output == Response('getPowerState', '', {0: 'On', })
 
     output = Robot.parse_message('getCoords:#X4#Y2;')
-    assert output == {'command': 'getCoords',
-                      'result': '',
-                      'state': {'X': 4, 'Y': 2}}
+    assert output == Response('getCoords', '', {'X': 4, 'Y': 2})
 
     msg = 'powerOn:fail_\'RobotPowerCannotBeSwitched\';'
     output = Robot.parse_message(msg)
+<<<<<<< HEAD
     assert output == {'command': 'powerOn',
                       'result': 'fail',
                       'state': {0: 'RobotPowerCannotBeSwitched'}}
@@ -113,3 +149,11 @@ def test_message_parser():
     assert output == {'command': 'getSpinHomePosition',
                       'result': '',
                       'state': {'X': 982, 'Y': 393, 'Z': -653, 'RX': 90, 'RY': 0, 'RZ': 0}}
+=======
+    assert output == Response('powerOn', 'fail',
+                              {0: 'RobotPowerCannotBeSwitched'})
+
+    output = Robot.parse_message('getSAM:#X1.432#Y2.643#Z-0.53;')
+    assert output == Response('getSAM', '', {'X': 1.432, 'Y': 2.643,
+                                             'Z': -0.53})
+>>>>>>> 8f1508a27b5e07889637133be9559c8fbca1021d

@@ -1,6 +1,8 @@
 import os
 import re
 
+from collections import namedtuple
+
 from emacontrol.network import SocketConnector
 from emacontrol.utils import input_to_int
 
@@ -40,10 +42,13 @@ class Robot(SocketConnector):
 
         Parameters
         ----------
-        message : String message to send to the controller
-        wait_for : String message to wait for the controller to send back
-        parse : Bool should received message be run through message_parser to
-                     check for errors
+        message : String
+        Sent to the controller
+        wait_for : String
+        Message to wait for the controller to send back
+        parse : boolean
+        Should received message be run through message_parser to check for
+        errors.
         '''
         recvd_msg = self.__send__(message)
         if parse:
@@ -74,8 +79,10 @@ class Robot(SocketConnector):
 
         Parameters
         ----------
-        n : integer index of the sample to pick
-        verbose : boolean if true prints the sample coordinates to screen
+        n : integer
+        Index of the sample to pick
+        verbose : boolean
+        If true prints the sample coordinates to screen
         """
         self.sample_index = n
         x_coord, y_coord = Robot.samplenr_to_xy(n)
@@ -86,9 +93,66 @@ class Robot(SocketConnector):
         self.send('setCoords:#X{0:d}#Y{1:d};'.format(x_coord, y_coord),
                   wait_for='setCoords:done;')
 
+    def get_spin_home_position(self):
+        spin_home = self.send('getSpinHomePosition;')
+        _, _, state = Robot.parse_message(spin_home)
+        return self._parse_state(state, ['X', 'Y', 'Z', 'RX', 'RY', 'RZ'])
+
+    def get_spin_position(self):
+        spin_pos = self.send('getSpinPosition;')
+        _, _, state = Robot.parse_message(spin_pos)
+        return self._parse_state(state, ['X', 'Y', 'Z', 'RX', 'RY', 'RZ'])
+
+    def get_spin_position_offset(self):
+        """
+        Reads and returns the offset (trsf in VAL3) which has been applied to
+        the SpinHomePosition to set the current SpinPosition of the robot.
+
+        Returns
+        -------
+        coords : tuple
+        x, y, z offset in mm.
+        """
+        spin_offset = self.send('getSpinPosOffset;')
+        _, _, state = Robot.parse_message(spin_offset)
+        return self._parse_state(state, ['X', 'Y', 'Z'])
+
+    def set_spin_position_offset(self, spin_x, spin_y, spin_z, verbose=False):
+        """
+        Sends new x, y and z coordinates to the robot for the spinner position
+
+        Parameters
+        ----------
+        spin_x, spin_y, spin_z : float
+        New coordinates for the spinner in mm
+        """
+        if verbose:
+            print('Spinner coords: ({}, {}, {})'.format(spin_x, spin_y,
+                                                        spin_z))
+        self.send(('setSpinPosOffset:'
+                   + '#X{0:.3f}#Y{1:.3f}#Z{2:.3f};'.format(spin_x, spin_y,
+                                                           spin_z)),
+                  wait_for='setSpinPosOffset:done;')
+
+    def get_gripper_coords(self):
+        """
+        Gets the current location of the gripper and returns the x, y, z
+        coordinates.
+
+        Returns
+        -------
+        coords : tuple
+        x, y, z coordinates of the gripper in mm.
+        """
+        # FIXME If we can just return the gripper coords rather than the
+        # spinner, we don't actually have to store the position of the gripper
+        # as the "spinner position". We just have to move the gripper to the
+        # right place.
+        return self.get_spinner_coords()
+
     # def isPowered(self):
     #     power_state = self.send('getPowerState;')
-    #     _, state, _ = Robot.message_parser(power_state)
+    #     _, _, state = Robot.message_parser(power_state)
     #     if state.lower() == 'on':
     #         return True
     #     else:
@@ -107,7 +171,8 @@ class Robot(SocketConnector):
 
         Returns
         -------
-        tuple of integers : x & y coordinates
+        coordinates : tuple of integers
+        x & y coordinates
 
         Raises
         ------
@@ -130,18 +195,21 @@ class Robot(SocketConnector):
         Messages have three formats:
         command:result;
         command:#parameters;
-        command:result_status';
+        command:result_'status';
 
-        Parameters are separated out with either given names or increasing
-        integers and passed into a dictionary.
+        Parameters are separated out and passed into a dictionary, with the
+        keys either the given names from the message or integers increasing
+        from 0.
 
         Parameters
         ----------
-        message : String to parse
+        message : String
+        Message to be parsed
 
         Returns
         -------
-        dict containing three fields (command; result; status)
+        response : namedtuple
+        Response (command; result; status)
         """
         command, response = message.strip(';').split(':')
         result = ''
@@ -149,19 +217,22 @@ class Robot(SocketConnector):
 
         # First handle the case we get some parameters back
         if response[0] == '#':
-            parameters = re.findall(r'[A-Za-z]+\d*\.*\d*', response)
-            for i in range(len(parameters)):
-                chars = re.search(r'[A-Za-z]+', parameters[i]).group()
-                nums = re.search(r'\d+\.*\d*', parameters[i])
+            param_parts = re.findall(
+                r'(?P<chars>[A-Za-z]+)(?P<nums>[-0-9\.]*)',
+                response
+            )
+
+            for idx, param in enumerate(param_parts):
+                chars, nums = param
 
                 # Are these named parameters? If so separate values and names
                 if nums:
                     try:
-                        state[chars] = input_to_int(nums.group())
+                        state[chars] = input_to_int(nums)
                     except ValueError:
-                        state[chars] = float(nums.group())
+                        state[chars] = float(nums)
                 else:
-                    state[i] = chars
+                    state[idx] = chars
         # Or is this just a string response?
         else:
             response = response.split('_')
@@ -169,4 +240,13 @@ class Robot(SocketConnector):
             if len(response) == 2:
                 state[0] = response[1].strip('\'')
 
-        return {'command': command, 'result': result, 'state': state}
+        return Response(command, result, state)
+
+    @staticmethod
+    def _parse_state(state, axes):
+        print('State: {}'.format(state))
+        return {axis.lower(): state[axis] for axis in axes}
+
+
+# namedtuple provides storage for a parsed responses from send method
+Response = namedtuple('Response', ['command', 'result', 'state'])
