@@ -135,25 +135,18 @@ def test_message_parser():
 
     msg = 'powerOn:fail_\'RobotPowerCannotBeSwitched\';'
     output = Robot.parse_message(msg)
-<<<<<<< HEAD
-    assert output == {'command': 'powerOn',
-                      'result': 'fail',
-                      'state': {0: 'RobotPowerCannotBeSwitched'}}
-
-    output = Robot.parse_message('getSAM:#X1.432#Y2.643#Z0.53;')
-    assert output == {'command': 'getSAM',
-                      'result': '',
-                      'state': {'X': 1.432, 'Y': 2.643, 'Z': 0.53}}
-
-    output = Robot.parse_message('getSpinHomePosition:#X982#Y393#Z-653#RX90#RY0#RZ0;')
-    assert output == {'command': 'getSpinHomePosition',
-                      'result': '',
-                      'state': {'X': 982, 'Y': 393, 'Z': -653, 'RX': 90, 'RY': 0, 'RZ': 0}}
-=======
-    assert output == Response('powerOn', 'fail',
+    assert output == Response('powerOn',
+                              'fail',
                               {0: 'RobotPowerCannotBeSwitched'})
 
-    output = Robot.parse_message('getSAM:#X1.432#Y2.643#Z-0.53;')
-    assert output == Response('getSAM', '', {'X': 1.432, 'Y': 2.643,
-                                             'Z': -0.53})
->>>>>>> 8f1508a27b5e07889637133be9559c8fbca1021d
+    output = Robot.parse_message('getSAM:#X1.432#Y2.643#Z0.53;')
+    assert output == Response('getSAM',
+                              '',
+                              {'X': 1.432, 'Y': 2.643, 'Z': 0.53})
+
+    output = Robot.parse_message(('getSpinHomePosition:#X982#Y393#Z-653#RX90'
+                                  + '#RY0#RZ0;'))
+    assert output == Response('getSpinHomePosition',
+                              '',
+                              {'X': 982, 'Y': 393, 'Z': -653, 'RX': 90,
+                               'RY': 0, 'RZ': 0})
