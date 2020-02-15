@@ -196,8 +196,8 @@ def test_calibrate_spinner(robo_cfg):
         assert_cfg_contains(robo_cfg, 'positions',
                             'spin_calib_xyz', '29.47,57.322,77.5')
         send_mock.assert_called_with(
-            'setSpinPositionOffset:#X0.000#Y0.000#Z0.000;',
-            wait_for='setSpinPositionOffset:done;'
+            'setSpinPosOffset:#X0.000#Y0.000#Z0.000;',
+            wait_for='setSpinPosOffset:done;'
         )
 
         # Do the same thing, but this time set the origin as well
@@ -221,8 +221,8 @@ def test_update_spinner(robo_cfg):
         # SpinnerPosition.
         update_spinner(samx, samy, samz, om, diffh, diffv)
         send_mock.assert_called_with(
-            'setSpinPositionOffset:#X7.000#Y6.232#Z-1.866;',
-            wait_for='setSpinPositionOffset:done;'
+            'setSpinPosOffset:#X7.000#Y6.232#Z-1.866;',
+            wait_for='setSpinPosOffset:done;'
         )
 
     # Try a non-zero distance between diffractometer origin and spinner:
@@ -238,8 +238,8 @@ def test_update_spinner(robo_cfg):
     with patch('emacontrol.emaapi.Robot.send') as send_mock:
         update_spinner(samx, samy, samz, om, diffh, diffv)
         send_mock.assert_called_with(
-            'setSpinPositionOffset:#X5.766#Y0.554#Z-10.878;',
-            wait_for='setSpinPositionOffset:done;'
+            'setSpinPosOffset:#X5.766#Y0.554#Z-10.878;',
+            wait_for='setSpinPosOffset:done;'
         )
 
 

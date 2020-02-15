@@ -113,7 +113,7 @@ class Robot(SocketConnector):
         coords : tuple
         x, y, z offset in mm.
         """
-        spin_offset = self.send('getSpinnerCoords;')
+        spin_offset = self.send('getSpinPosOffset;')
         _, _, state = Robot.parse_message(spin_offset)
         return self._parse_state(state, ['X', 'Y', 'Z'])
 
@@ -129,10 +129,10 @@ class Robot(SocketConnector):
         if verbose:
             print('Spinner coords: ({}, {}, {})'.format(spin_x, spin_y,
                                                         spin_z))
-        self.send(('setSpinPositionOffset:'
+        self.send(('setSpinPosOffset:'
                    + '#X{0:.3f}#Y{1:.3f}#Z{2:.3f};'.format(spin_x, spin_y,
                                                            spin_z)),
-                  wait_for='setSpinPositionOffset:done;')
+                  wait_for='setSpinPosOffset:done;')
 
     def get_gripper_coords(self):
         """
@@ -152,7 +152,7 @@ class Robot(SocketConnector):
 
     # def isPowered(self):
     #     power_state = self.send('getPowerState;')
-    #     _, state, _ = Robot.message_parser(power_state)
+    #     _, _, state = Robot.message_parser(power_state)
     #     if state.lower() == 'on':
     #         return True
     #     else:

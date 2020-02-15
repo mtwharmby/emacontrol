@@ -89,7 +89,7 @@ def test_get_spin_position_offset():
     with patch('emacontrol.emaapi.Robot.send') as send_mock:
         ema = Robot()
         send_mock.return_value = (
-            'getSpinPositionOffset:#X2.685#Y5.211#Z-8.646;'
+            'getSpinPosOffset:#X2.685#Y5.211#Z-8.646;'
         )
         res = ema.get_spin_position_offset()
         assert res == {'x': 2.685, 'y': 5.211, 'z': -8.646}
@@ -99,9 +99,9 @@ def test_set_spin_position_offset():
     with patch('emacontrol.emaapi.Robot.send') as send_mock:
         ema = Robot()
         ema.set_spin_position_offset(7, 6, 2)
-        send_mock.assert_called_with(('setSpinPositionOffset:#X7.000#Y6.000'
+        send_mock.assert_called_with(('setSpinPosOffset:#X7.000#Y6.000'
                                       + '#Z2.000;'),
-                                     wait_for='setSpinPositionOffset:done;')
+                                     wait_for='setSpinPosOffset:done;')
 
 
 # Method supports set_sample_coords
