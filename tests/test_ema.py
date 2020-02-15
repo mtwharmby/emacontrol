@@ -108,3 +108,8 @@ def test_message_parser():
     assert output == {'command': 'getSAM',
                       'result': '',
                       'state': {'X': 1.432, 'Y': 2.643, 'Z': 0.53}}
+
+    output = Robot.parse_message('getSpinHomePosition:#X982#Y393#Z-653#RX90#RY0#RZ0;')
+    assert output == {'command': 'getSpinHomePosition',
+                      'result': '',
+                      'state': {'X': 982, 'Y': 393, 'Z': -653, 'RX': 90, 'RY': 0, 'RZ': 0}}
