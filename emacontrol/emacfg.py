@@ -62,7 +62,10 @@ class ConfigEditor():
         """
         self._read_file()
         coords_s = ','.join(map(str, coords))
-        self.config['positions'][pos_name] = coords_s
+        if 'positions' in self.config.sections():
+            self.config['positions'][pos_name] = coords_s
+        else:
+            self.config['positions'] = {pos_name: coords_s}
         with open(self.file, 'w') as cfg_file:
             self.config.write(cfg_file)
 
