@@ -89,9 +89,9 @@ class Robot(SocketConnector):
         # TODO Log: 'Setting sample coordinates for sample {} to ({}, {})'
         # .format(n, x_coord, coord)
         if verbose:
-            print('Sample coords: ({}, {})'.format(x_coord, y_coord))
-        self.send('setCoords:#X{0:d}#Y{1:d};'.format(x_coord, y_coord),
-                  wait_for='setCoords:done;')
+            print('Sample position offset: ({}, {})'.format(x_coord, y_coord))
+        self.send('setSamPosOffset:#X{0:d}#Y{1:d};'.format(x_coord, y_coord),
+                  wait_for='setSamPosOffset:done;')
 
     def get_spin_home_position(self):
         spin_home = self.send('getSpinHomePosition;')
