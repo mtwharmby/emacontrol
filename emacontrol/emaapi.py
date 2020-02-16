@@ -27,17 +27,17 @@ def robot_begin():
     # TODO Ideally this would check the interlock programmatically. But this
     # isn't an option yet.
     input('Have you pressed the reset button?\nPress enter to continue...')
-    gotCoords = ema.send('getCoords;')
-    coords = gotCoords['state']
-    if coords != {'X': 0, 'Y': 0}:
-        sample = (coords['X'] * 10) + coords['Y'] + 1
-        ema.sample_index = sample
-        # TODO Log: 'Sample coords at robot start are ({}, {}) (Sample {}).
-        # Should be (0, 0) for Sample 1'.format(coords['X'], coords['Y'],
-        # sample)
-        print('WARNING: Current sample is {} (not 1!).'.format(sample))
-        print('Is there a sample on the spinner? '
-              + 'Run \'unmount_sample()\' immediately if there is!')
+    gotCoords = ema.send('getSamPosOffset;')
+#    coords = gotCoords['state']
+#    if coords != {'X': 0, 'Y': 0}: FIXME!!!!
+#        sample = (coords['X'] * 10) + coords['Y'] + 1
+#        ema.sample_index = sample
+#        # TODO Log: 'Sample coords at robot start are ({}, {}) (Sample {}).
+#        # Should be (0, 0) for Sample 1'.format(coords['X'], coords['Y'],
+#        # sample)
+#        print('WARNING: Current sample is {} (not 1!).'.format(sample))
+#        print('Is there a sample on the spinner? '
+#              + 'Run \'unmount_sample()\' immediately if there is!')
 
     print('Starting E.M.A. sample changer... ', end='', flush=True)
     ema.send('powerOn;', wait_for='powerOn:done;')
@@ -77,7 +77,7 @@ def mount_sample(n, verbose=False):
     print('Mounting sample {}... '.format(n), end='', flush=True)
 
     # Actually do the movements
-    ema.send('moveCoords;', wait_for='moveCoords:done;')
+    ema.send('moveSamPos;', wait_for='moveSamPos:done;')
     ema.send('samplePick;', wait_for='samplePick:done;')
     ema.send('moveGate;', wait_for='moveGate:done;')
     ema.send('moveSpinner;', wait_for='moveSpinner:done;')
@@ -104,7 +104,7 @@ def unmount_sample():
     ema.send('moveSpinner;', wait_for='moveSpinner:done;')
     ema.send('samplePick;', wait_for='samplePick:done;')
     ema.send('moveGate;', wait_for='moveGate:done;')
-    ema.send('moveCoords;', wait_for='moveCoords:done;')
+    ema.send('moveSamPos;', wait_for='moveSamPos:done;')
     ema.send('sampleRelease;', wait_for='sampleRelease:done;')
     # TODO Log: 'Successfully Unmounted sample {}'
     print('Done')
