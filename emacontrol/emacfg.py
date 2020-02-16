@@ -277,6 +277,8 @@ def update_spinner(samx, samy, samz, om, diffh, diffv, rotate_sense=1,
                 ('Requested spinner offset has different origin'
                  + ' to calibration by: {}'.format(origin_diff)))
 
-    ema.set_spin_position_offset(diffr_offset.x,
-                                 diffr_offset.y,
-                                 diffr_offset.z)
+    # We map robot & b/l coordinate systems on to one-another here:
+    # z_rob <- x_bl; x_rob <- y_bl; y_rob <- z_bl
+    ema.set_spin_position_offset(diffr_offset.z,
+                                 diffr_offset.x,
+                                 diffr_offset.y)
