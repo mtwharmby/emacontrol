@@ -27,17 +27,17 @@ def robot_begin():
     # TODO Ideally this would check the interlock programmatically. But this
     # isn't an option yet.
     input('Have you pressed the reset button?\nPress enter to continue...')
-    gotCoords = ema.send('getSamPosOffset;')
-#    coords = gotCoords['state']
-#    if coords != {'X': 0, 'Y': 0}: FIXME!!!!
-#        sample = (coords['X'] * 10) + coords['Y'] + 1
-#        ema.sample_index = sample
-#        # TODO Log: 'Sample coords at robot start are ({}, {}) (Sample {}).
-#        # Should be (0, 0) for Sample 1'.format(coords['X'], coords['Y'],
-#        # sample)
-#        print('WARNING: Current sample is {} (not 1!).'.format(sample))
-#        print('Is there a sample on the spinner? '
-#              + 'Run \'unmount_sample()\' immediately if there is!')
+    gotSamPos = ema.send('getSamPosOffset;')
+    sam_pos = gotSamPos.state
+    if sam_pos != {'X': 0, 'Y': 0}:  # FIXME Check flag; check powerstate
+        sample = (sam_pos['X'] * 10) + sam_pos['Y'] + 1
+        ema.sample_index = sample
+        # TODO Log: 'Sample coords at robot start are ({}, {}) (Sample {}).
+        # Should be (0, 0) for Sample 1'.format(coords['X'], coords['Y'],
+        # sample)
+        print('WARNING: Current sample is {} (not 1!).'.format(sample))
+        print('Is there a sample on the spinner? '
+              + 'Run \'unmount_sample()\' immediately if there is!')
 
     print('Starting E.M.A. sample changer... ', end='', flush=True)
     ema.send('powerOn;', wait_for='powerOn:done;')
@@ -53,6 +53,7 @@ def robot_end():
     print('Powering off E.M.A. sample changer... ', end='', flush=True)
     ema.send('powerOff;', wait_for='powerOff:done;')
     ema.started = False
+    # TODO If everything finished cleanly, samPosOffset should be set to 0
     print('Done')
 
 

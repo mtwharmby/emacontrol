@@ -3,21 +3,21 @@ from mock import call, patch
 
 from emacontrol.emaapi import (robot_begin, robot_end, mount_sample,
                                unmount_sample, ema)
+from emacontrol.ema import Response
 
 
 # These tests are for the  basic start-up/shutdown methods
 @patch('emacontrol.emaapi.ema.send')
 def test_robot_begin(send_mock):
     assert ema.started is False
-    # This is what we would get if we do a getSamPos with the sample set to 43
-    getSamPos_reply = {'command': 'getSamPos',
-                       'result': '',
-                       'state': {'X': 4, 'Y': 2}}
-    send_mock.return_value = getSamPos_reply
+    # This is what we would get if we do a getSamPosOffset with the sample set
+    # to 43
+    getSamPosOffs_reply = Response('getSamPosOffset', '', {'X': 4, 'Y': 2})
+    send_mock.return_value = getSamPosOffs_reply
 
     with patch('builtins.input'):
         robot_begin()
-    send_calls = [call('getSamPos;'),
+    send_calls = [call('getSamPosOffset;'),
                   call('powerOn;',
                        wait_for='powerOn:done;')]
     send_mock.assert_has_calls(send_calls)
