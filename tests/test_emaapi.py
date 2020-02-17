@@ -9,15 +9,15 @@ from emacontrol.emaapi import (robot_begin, robot_end, mount_sample,
 @patch('emacontrol.emaapi.ema.send')
 def test_robot_begin(send_mock):
     assert ema.started is False
-    # This is what we would get if we do a getCoords with the sample set to 43
-    getCoords_reply = {'command': 'getCoords',
+    # This is what we would get if we do a getSamPos with the sample set to 43
+    getSamPos_reply = {'command': 'getSamPos',
                        'result': '',
                        'state': {'X': 4, 'Y': 2}}
-    send_mock.return_value = getCoords_reply
+    send_mock.return_value = getSamPos_reply
 
     with patch('builtins.input'):
         robot_begin()
-    send_calls = [call('getCoords;'),
+    send_calls = [call('getSamPos;'),
                   call('powerOn;',
                        wait_for='powerOn:done;')]
     send_mock.assert_has_calls(send_calls)
@@ -44,7 +44,7 @@ def test_mount_sample(coords_mock, send_mock):
     mount_sample(75,)
 
     coords_mock.assert_called_with(75, verbose=False)
-    send_calls = [call('moveCoords;', wait_for='moveCoords:done;'),
+    send_calls = [call('moveSamPos;', wait_for='moveSamPos:done;'),
                   call('samplePick;', wait_for='samplePick:done;'),
                   call('moveGate;', wait_for='moveGate:done;'),
                   call('moveSpinner;', wait_for='moveSpinner:done;'),
@@ -68,7 +68,7 @@ def test_unmount_sample(send_mock):
     send_calls = [call('moveSpinner;', wait_for='moveSpinner:done;'),
                   call('samplePick;', wait_for='samplePick:done;'),
                   call('moveGate;', wait_for='moveGate:done;'),
-                  call('moveCoords;', wait_for='moveCoords:done;'),
+                  call('moveSamPos;', wait_for='moveSamPos:done;'),
                   call('sampleRelease;', wait_for='sampleRelease:done;')
                   ]
     send_mock.assert_has_calls(send_calls)
