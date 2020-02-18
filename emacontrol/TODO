@@ -1,0 +1,51 @@
+# Align diffractometer to beam and align robot to spinner
+# Get spinner coords in diffractometer frame and calculate in xyz frame (spin_dxyz)
+# Get gripper coordinates in xyz frame (grip_xyz)
+# Calculate diffractometer 0 (in xyz frame) diff0_xyz = grip_xyz - spin_dxyz
+# Specify offset of beam wrt to top of brass pin
+# Calculate beam_xyz = grip_xyz + beam_offset
+# Write diff0_xyz, beam_diff_offset and spin_dxyz to file
+
+# beam_xyz - diff0_xyz (= beam_diff_offset) should be constant. This provides a check whether diff0 has moved.
+
+
+# 1) Align diffractometer to beam
+# 2) Align spinner to sample position
+# 3) Set SpinnerHomePosition in MCP
+# 4) Call calibrate_spinner()
+
+# TODO
+# VAL3
+# Change setSpinPos to use appro
+# Rename SpinnerPosition -> SpinHomePosition; rename getSpinnerPosition -> getSpinHomePos
+# Rename getSpinPos -> getSpinPositionOffset
+# Rename getCurrentSpinPos -> getSpinPosition
+# New function setSpinHomePosHere
+# New function getCurrentPosition
+#
+# python
+# get_spin_home_position - needs docstring
+# get_spin_position - needs docstring
+# (later)
+# Update network.py to use config file rather than host/port
+# Method to specify host & port in config
+
+
+# Get spinner coords in diffractometer frame and calculate in xyz frame (spin_dxyz)
+# Calculate absolute postion of spinner from diff0_xyz: new_grip_xyz = diff0_xyz + spin_dxyz
+# Check beam_diff_offset still consistent: ((spin_dxyz + diff0_xyz) + beam_offset) == beam_diff_offset
+
+
+
+
+
+# Record diffrac home in VAL3 as a string
+# get_sample_position_offset function -> calculate sample number
+# sample mounted flag -> set by mount/unmount function
+# clear flags
+# reporting option in config
+# init config
+# set up __init__ properly for imports
+# docs
+# figure to explain checking
+# Move diffr calc code to ema.py
