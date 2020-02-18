@@ -96,36 +96,6 @@ class Robot(SocketConnector):
         self.send('setSamPosOffset:#X{0:d}#Y{1:d};'.format(x_coord, y_coord),
                   wait_for='setSamPosOffset:done;')
 
-    def get_spin_home_position(self):
-        """
-        Reads the SpinHomePosition, i.e. the position where the robot was last
-        calibrated against the goniometer head. This is the position which
-        offsets are applied to.
-
-        Returns
-        -------
-        spin_home_pos : dict
-        A six-member dictionary containing the translations (3x in mm) and
-        rotations (3x in degrees) of the spinner home position.
-        """
-        spin_home = self.send('getSpinHomePosition;')
-        return Robot._parse_state(spin_home, ['X', 'Y', 'Z', 'RX', 'RY', 'RZ'])
-
-    def get_spin_position(self):
-        """
-        Reads the current spinner position (i.e. SpinHomePosition + offset =
-        currentSpinPosJ in VAL3). The returned values are absolute in the
-        robot reference frame.
-
-        Returns
-        -------
-        current_spin_pos : dict
-        A six-member dictionary containing the translations (3x in mm) and
-        rotations (3x in degrees) of the spinner position.
-        """
-        spin_pos = self.send('getSpinPosition;')
-        return Robot._parse_state(spin_pos, ['X', 'Y', 'Z', 'RX', 'RY', 'RZ'])
-
     def get_spin_position_offset(self):
         """
         Reads and returns the offset (trsf.{x,y,z} in VAL3) which has been
@@ -158,6 +128,36 @@ class Robot(SocketConnector):
                    + '#X{0:.3f}#Y{1:.3f}#Z{2:.3f};'.format(spin_x, spin_y,
                                                            spin_z)),
                   wait_for='setSpinPosOffset:done;')
+
+    def get_spin_home_position(self):
+        """
+        Reads the SpinHomePosition, i.e. the position where the robot was last
+        calibrated against the goniometer head. This is the position which
+        offsets are applied to.
+
+        Returns
+        -------
+        spin_home_pos : dict
+        A six-member dictionary containing the translations (3x in mm) and
+        rotations (3x in degrees) of the spinner home position.
+        """
+        spin_home = self.send('getSpinHomePosition;')
+        return Robot._parse_state(spin_home, ['X', 'Y', 'Z', 'RX', 'RY', 'RZ'])
+
+    def get_spin_position(self):
+        """
+        Reads the current spinner position (i.e. SpinHomePosition + offset =
+        currentSpinPosJ in VAL3). The returned values are absolute in the
+        robot reference frame.
+
+        Returns
+        -------
+        current_spin_pos : dict
+        A six-member dictionary containing the translations (3x in mm) and
+        rotations (3x in degrees) of the spinner position.
+        """
+        spin_pos = self.send('getSpinPosition;')
+        return Robot._parse_state(spin_pos, ['X', 'Y', 'Z', 'RX', 'RY', 'RZ'])
 
     def get_gripper_coords(self):
         """
