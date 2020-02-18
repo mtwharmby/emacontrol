@@ -180,10 +180,11 @@ def test_calibrate_spinner(robo_cfg):
     diffh = 5.0
     diffv = 3.0
 
-    with patch('emacontrol.emaapi.Robot.send') as send_mock:
-        send_mock.return_value = (
-            'getSpinPosition:#X29.47#Y57.322#Z77.5#RX0.841#RY89.653#RZ-0.064;'
-        )
+    with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
+        send_mock.side_effect = ([
+            'getSpinPosition:#X29.47#Y57.322#Z77.5#RX0.841#RY89.653#RZ-0.064;',
+            'setSpinPosOffset:done;',
+        ])
 
         # Use the diffractometer coordinates and the provided spinner position
         # to determine a new diffractometer-robot calibration. Should update
@@ -196,12 +197,25 @@ def test_calibrate_spinner(robo_cfg):
         assert_cfg_contains(robo_cfg, 'positions',
                             'spin_calib_xyz', '29.47,57.322,77.5')
         send_mock.assert_called_with(
-            'setSpinPosOffset:#X0.000#Y0.000#Z0.000;',
-            wait_for='setSpinPosOffset:done;'
+            'setSpinPosOffset:#X0.000#Y0.000#Z0.000;'
         )
 
-        # Do the same thing, but this time set the origin as well
-        samz = 7.0
+
+def test_calibrate_spinner_origin_set(robo_cfg):
+    # Do the same thing, but this time set the origin as well
+    samx = 2.0
+    samy = 4.0
+    samz = 7.0
+    om = 0.0
+    diffh = 5.0
+    diffv = 3.0
+
+    with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
+        send_mock.side_effect = ([
+            'getSpinPosition:#X29.47#Y57.322#Z77.5#RX0.841#RY89.653#RZ-0.064;',
+            'setSpinPosOffset:done;',
+        ])
+
         calibrate_spinner(samx, samy, samz, om, diffh, diffv, set_origin=True)
         assert_cfg_contains(robo_cfg, 'positions',
                             'diffr_robot_origin_xyz', '22.47,50.322,70.5')
@@ -221,7 +235,7 @@ def test_update_spinner(robo_cfg):
         # SpinnerPosition.
         update_spinner(samx, samy, samz, om, diffh, diffv)
         send_mock.assert_called_with(
-            'setSpinPosOffset:#X7.000#Y6.232#Z-1.866;',
+            'setSpinPosOffset:#X-1.866#Y7.000#Z6.232;',
             wait_for='setSpinPosOffset:done;'
         )
 
@@ -238,7 +252,7 @@ def test_update_spinner(robo_cfg):
     with patch('emacontrol.emaapi.Robot.send') as send_mock:
         update_spinner(samx, samy, samz, om, diffh, diffv)
         send_mock.assert_called_with(
-            'setSpinPosOffset:#X5.766#Y0.554#Z-10.878;',
+            'setSpinPosOffset:#X-10.878#Y5.766#Z0.554;',
             wait_for='setSpinPosOffset:done;'
         )
 
