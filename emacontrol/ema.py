@@ -95,15 +95,13 @@ class Robot(SocketConnector):
 
     def get_spin_home_position(self):
         spin_home = self.send('getSpinHomePosition;')
-        state = spin_home.state  # TODO Untested
-        # _, _, state = Robot.parse_message(spin_home)
-        return self._parse_state(state, ['X', 'Y', 'Z', 'RX', 'RY', 'RZ'])
+        return Robot._parse_state(spin_home.state, ['X', 'Y', 'Z',
+                                                    'RX', 'RY', 'RZ'])
 
     def get_spin_position(self):
         spin_pos = self.send('getSpinPosition;')
-        state = spin_pos.state  # TODO Untested
-        # _, _, state = Robot.parse_message(spin_pos)
-        return self._parse_state(state, ['X', 'Y', 'Z', 'RX', 'RY', 'RZ'])
+        return Robot._parse_state(spin_pos.state, ['X', 'Y', 'Z',
+                                                   'RX', 'RY', 'RZ'])
 
     def get_spin_position_offset(self):
         """
@@ -116,8 +114,7 @@ class Robot(SocketConnector):
         x, y, z offset in mm.
         """
         spin_offset = self.send('getSpinPosOffset;')
-        _, _, state = Robot.parse_message(spin_offset)
-        return self._parse_state(state, ['X', 'Y', 'Z'])
+        return Robot._parse_state(spin_offset.state, ['X', 'Y', 'Z'])
 
     def set_spin_position_offset(self, spin_x, spin_y, spin_z, verbose=False):
         """
