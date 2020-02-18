@@ -44,8 +44,10 @@ class Robot(SocketConnector):
         ----------
         message : String
         Sent to the controller
+
         wait_for : String
         Message to wait for the controller to send back
+
         parse : boolean
         Should received message be run through message_parser to check for
         errors.
@@ -72,7 +74,7 @@ class Robot(SocketConnector):
 
         return output
 
-    def set_sample_coords(self, n, verbose=False):
+    def set_sample_position_offset(self, n, verbose=False):
         """
         Sets the xy coordinates for the next sample to mount based on the index
         of that sample. Sends these coordinates to the robot controller.
@@ -81,6 +83,7 @@ class Robot(SocketConnector):
         ----------
         n : integer
         Index of the sample to pick
+
         verbose : boolean
         If true prints the sample coordinates to screen
         """
@@ -94,19 +97,40 @@ class Robot(SocketConnector):
                   wait_for='setSamPosOffset:done;')
 
     def get_spin_home_position(self):
+        """
+        Reads the SpinHomePosition, i.e. the position where the robot was last
+        calibrated against the goniometer head. This is the position which
+        offsets are applied to.
+
+        Returns
+        -------
+        spin_home_pos : dict
+        A six-member dictionary containing the translations (3x in mm) and
+        rotations (3x in degrees) of the spinner home position.
+        """
         spin_home = self.send('getSpinHomePosition;')
-        return Robot._parse_state(spin_home.state, ['X', 'Y', 'Z',
-                                                    'RX', 'RY', 'RZ'])
+        return Robot._parse_state(spin_home, ['X', 'Y', 'Z', 'RX', 'RY', 'RZ'])
 
     def get_spin_position(self):
+        """
+        Reads the current spinner position (i.e. SpinHomePosition + offset =
+        currentSpinPosJ in VAL3). The returned values are absolute in the
+        robot reference frame.
+
+        Returns
+        -------
+        current_spin_pos : dict
+        A six-member dictionary containing the translations (3x in mm) and
+        rotations (3x in degrees) of the spinner position.
+        """
         spin_pos = self.send('getSpinPosition;')
-        return Robot._parse_state(spin_pos.state, ['X', 'Y', 'Z',
-                                                   'RX', 'RY', 'RZ'])
+        return Robot._parse_state(spin_pos, ['X', 'Y', 'Z', 'RX', 'RY', 'RZ'])
 
     def get_spin_position_offset(self):
         """
-        Reads and returns the offset (trsf in VAL3) which has been applied to
-        the SpinHomePosition to set the current SpinPosition of the robot.
+        Reads and returns the offset (trsf.{x,y,z} in VAL3) which has been
+        applied to the SpinHomePosition to set the current currentSpinPosJ of
+        the robot.
 
         Returns
         -------
@@ -114,16 +138,18 @@ class Robot(SocketConnector):
         x, y, z offset in mm.
         """
         spin_offset = self.send('getSpinPosOffset;')
-        return Robot._parse_state(spin_offset.state, ['X', 'Y', 'Z'])
+        return Robot._parse_state(spin_offset, ['X', 'Y', 'Z'])
 
     def set_spin_position_offset(self, spin_x, spin_y, spin_z, verbose=False):
         """
-        Sends new x, y and z coordinates to the robot for the spinner position
+        Sends new x, y and z offsets to be applied to the SpinHomePosition of
+        the robot to yield the new currentSpinPosJ. These values should be
+        calculated from the goniometer head encoder positions.
 
         Parameters
         ----------
         spin_x, spin_y, spin_z : float
-        New coordinates for the spinner in mm
+        New offsets in three dimensions for the spinner in mm
         """
         if verbose:
             print('Spinner coords: ({}, {}, {})'.format(spin_x, spin_y,
@@ -242,9 +268,27 @@ class Robot(SocketConnector):
         return Response(command, result, state)
 
     @staticmethod
-    def _parse_state(state, axes):
-        print('State: {}'.format(state))
-        return {axis.lower(): state[axis] for axis in axes}
+    def _parse_state(response, keys):
+        """
+        Extracts only the requested keys from the state inside the given
+        Response object. These are returned as a dictionary of lowercase keys
+        and their values.
+
+        Parameters
+        ----------
+        response : Response
+        Object containing state to be extracted.
+
+        keys : list
+        String names of items to be returned
+
+        Returns
+        -------
+        selected_keys : dict
+        Dictionary with specified lowercase key names and their associated
+        values.
+        """
+        return {key.lower(): response.state[key] for key in keys}
 
 
 # namedtuple provides storage for a parsed responses from send method
