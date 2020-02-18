@@ -73,23 +73,6 @@ class ConfigEditor():
 # FIXME Move to __init__.py
 ema_config = ConfigEditor(default_config)
 
-
-# Align diffractometer to beam and align robot to spinner
-# Get spinner coords in diffractometer frame and calculate in xyz frame (spin_dxyz)
-# Get gripper coordinates in xyz frame (grip_xyz)
-# Calculate diffractometer 0 (in xyz frame) diff0_xyz = grip_xyz - spin_dxyz
-# Specify offset of beam wrt to top of brass pin
-# Calculate beam_xyz = grip_xyz + beam_offset
-# Write diff0_xyz, beam_diff_offset and spin_dxyz to file
-
-# beam_xyz - diff0_xyz (= beam_diff_offset) should be constant. This provides a check whether diff0 has moved.
-
-
-# Align diffractometer to beam
-# Get spinner coords in diffractometer frame and calculate in xyz frame (spin_dxyz)
-# Calculate absolute postion of spinner from diff0_xyz: new_grip_xyz = diff0_xyz + spin_dxyz
-# Check beam_diff_offset still consistent: ((spin_dxyz + diff0_xyz) + beam_offset) == beam_diff_offset
-
 CoordsXYZ = namedtuple('CoordsXYZ', ['x', 'y', 'z'])
 
 
@@ -278,7 +261,7 @@ def update_spinner(samx, samy, samz, om, diffh, diffv, rotate_sense=1,
                  + ' to calibration by: {}'.format(origin_diff)))
 
     # We map robot & b/l coordinate systems on to one-another here:
-    # z_rob <- x_bl; x_rob <- y_bl; y_rob <- z_bl
+    # x_bl -> y_rob; y_bl -> z_rob; z_bl -> x_rob
     ema.set_spin_position_offset(diffr_offset.z,
                                  diffr_offset.x,
                                  diffr_offset.y)
