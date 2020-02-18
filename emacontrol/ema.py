@@ -74,7 +74,7 @@ class Robot(SocketConnector):
 
         return output
 
-    def set_sample_position_offset(self, n, verbose=False):
+    def set_sample_number(self, n, verbose=False):
         """
         Sets the xy coordinates for the next sample to mount based on the index
         of that sample. Sends these coordinates to the robot controller.

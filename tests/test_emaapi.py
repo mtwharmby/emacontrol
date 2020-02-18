@@ -37,13 +37,13 @@ def test_robot_end(ema_mock):
 # The following tests are for functions which wait for a message to return from
 # the robot before continuing
 @patch('emacontrol.emaapi.ema.send')
-@patch('emacontrol.emaapi.ema.set_sample_coords')
-def test_mount_sample(coords_mock, send_mock):
+@patch('emacontrol.emaapi.ema.set_sample_number')
+def test_mount_sample(sample_num_mock, send_mock):
     # Mount a sample. This should set the coordinates and then do the mount
     ema.started = True
     mount_sample(75,)
 
-    coords_mock.assert_called_with(75, verbose=False)
+    sample_num_mock.assert_called_with(75, verbose=False)
     send_calls = [call('moveSamPos;', wait_for='moveSamPos:done;'),
                   call('samplePick;', wait_for='samplePick:done;'),
                   call('moveGate;', wait_for='moveGate:done;'),

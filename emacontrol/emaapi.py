@@ -73,7 +73,7 @@ def mount_sample(n, verbose=False):
     if ema.started is False:
         msg = 'Robot not started. Did you run the robot_begin() method?'
         raise Exception(msg)
-    ema.set_sample_coords(n, verbose=verbose)
+    ema.set_sample_number(n, verbose=verbose)
     # TODO Log: 'Mounting sample {}'
     print('Mounting sample {}... '.format(n), end='', flush=True)
 

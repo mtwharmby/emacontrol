@@ -54,10 +54,10 @@ def test_send(send_mock):
         reply = ema.send('Command;', wait_for='Command:done;', parse=False)
 
 
-def test_set_sample_position_offset():
+def test_set_sample_number():
     with patch('emacontrol.emaapi.Robot.send') as send_mock:
         ema = Robot()
-        ema.set_sample_position_offset(75)
+        ema.set_sample_number(75)
         send_mock.assert_called_with('setSamPosOffset:#X7#Y4;',
                                      wait_for='setSamPosOffset:done;')
 
