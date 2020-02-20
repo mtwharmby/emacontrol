@@ -62,6 +62,25 @@ def test_set_sample_number():
                                      wait_for='setSamPosOffset:done;')
 
 
+def test_get_spin_position_offset():
+    with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
+        ema = Robot()
+        send_mock.return_value = (
+            'getSpinPosOffset:#X2.685#Y5.211#Z-8.646;'
+        )  # This is raw output from the robot, hence __send__
+        res = ema.get_spin_position_offset()
+        assert res == {'x': 2.685, 'y': 5.211, 'z': -8.646}
+
+
+def test_set_spin_position_offset():
+    with patch('emacontrol.emaapi.Robot.send') as send_mock:
+        ema = Robot()
+        ema.set_spin_position_offset(7, 6, 2)
+        send_mock.assert_called_with(('setSpinPosOffset:#X7.000#Y6.000'
+                                      + '#Z2.000;'),
+                                     wait_for='setSpinPosOffset:done;')
+
+
 def test_get_spin_home_position():
     with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
         ema = Robot()
@@ -85,26 +104,7 @@ def test_get_spin_position():
                        'rx': 0.841, 'ry': 89.653, 'rz': -0.064}
 
 
-def test_get_spin_position_offset():
-    with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
-        ema = Robot()
-        send_mock.return_value = (
-            'getSpinPosOffset:#X2.685#Y5.211#Z-8.646;'
-        )  # This is raw output from the robot, hence __send__
-        res = ema.get_spin_position_offset()
-        assert res == {'x': 2.685, 'y': 5.211, 'z': -8.646}
-
-
-def test_set_spin_position_offset():
-    with patch('emacontrol.emaapi.Robot.send') as send_mock:
-        ema = Robot()
-        ema.set_spin_position_offset(7, 6, 2)
-        send_mock.assert_called_with(('setSpinPosOffset:#X7.000#Y6.000'
-                                      + '#Z2.000;'),
-                                     wait_for='setSpinPosOffset:done;')
-
-
-# Method supports set_sample_coords
+# Method supports set_sample_number
 def test_sample_to_coords():
     # Some specific examples of coords calculated...
     assert (0, 0) == Robot.samplenr_to_xy(1)
