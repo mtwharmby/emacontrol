@@ -4,7 +4,7 @@ import re
 from collections import namedtuple
 
 from emacontrol.network import SocketConnector
-from emacontrol.utils import input_to_int
+from emacontrol.utils import input_to_int, num_to_int
 
 # For Python >3.4, a more portable way to getting the home directory is:
 # from pathlib import Path
@@ -73,6 +73,11 @@ class Robot(SocketConnector):
             raise RuntimeError(msg)
 
         return output
+
+    def get_sample_number(self):
+        # TODO Docstring
+        coords = self.send('getSamPosOffset;')
+        return Robot.xy_to_samplenr(Robot._parse_state(coords, ['X', 'Y']))
 
     def set_sample_number(self, n, verbose=False):
         """

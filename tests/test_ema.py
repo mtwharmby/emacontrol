@@ -54,6 +54,19 @@ def test_send(send_mock):
         reply = ema.send('Command;', wait_for='Command:done;', parse=False)
 
 
+def test_get_sample_number():
+    with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
+        send_mock.return_value = (
+            'getSamPosOffset:#X4#Y6;'
+        )  # This is raw output from the robot, hence __send__
+
+        ema = Robot()
+        res = ema.get_sample_number()
+
+        send_mock.assert_called_with('getSamPosOffset;')
+        assert res == 47
+
+
 def test_set_sample_number():
     with patch('emacontrol.emaapi.Robot.send') as send_mock:
         ema = Robot()
