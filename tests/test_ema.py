@@ -118,8 +118,30 @@ def test_sample_to_coords():
             assert (i, j) == Robot.samplenr_to_xy(n)
             n += 1
 
+
+def test_sample_to_coords_bad_sample():
+    # Sample position numbers start at 1. Number must be > 0
     with pytest.raises(ValueError, match=r".*greater than 0"):
         Robot.samplenr_to_xy(0)
+
+
+def test_sample_to_coords_float():
+    # Sample numbers are integers. This is to catch dodgy user input.
+    with pytest.raises(ValueError, match=r".*integer.*"):
+        Robot.samplenr_to_xy(3.2)
+
+
+def test_coords_to_sample():
+    assert 1 == Robot.xy_to_samplenr({'x': 0.0, 'y': 0.0})
+    assert 43 == Robot.xy_to_samplenr({'x': 4, 'y': 2})
+    assert 157 == Robot.xy_to_samplenr({'x': 15, 'y': 6})
+    assert 264 == Robot.xy_to_samplenr({'x': 26, 'y': 3.0})
+
+
+def test_coords_to_sample_float():
+    # We should get an error if a float with a non-zero fraction
+    with pytest.raises(ValueError, match=r".*integer.*"):
+        Robot.xy_to_samplenr({'x': 3.4, 'y': 5.0})
 
 
 # Method supports send

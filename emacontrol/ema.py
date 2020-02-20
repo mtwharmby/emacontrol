@@ -214,6 +214,12 @@ class Robot(SocketConnector):
         return coordinates
 
     @staticmethod
+    def xy_to_samplenr(xy):
+        # TODO Docstring
+        int_xy = {k: num_to_int(v) for k, v in xy.items()}
+        return 10 * int_xy['x'] + int_xy['y'] + 1
+
+    @staticmethod
     def parse_message(message):
         """
         Parse the messages that come from the robot.

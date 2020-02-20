@@ -1,10 +1,10 @@
 def input_to_int(value):
     """
-    Checks that user input is an integer.
+    Checks that user (string) input is an integer.
 
     Parameters
     ----------
-    n : user input to check
+    value : user input to check
 
     Returns
     -------
@@ -15,7 +15,31 @@ def input_to_int(value):
     ValueError : if n is not an integer
     """
     if str(value).isdigit():
-        return int(value)
+        return num_to_int(float(value))
     else:
         raise ValueError('Expecting integer. Got: "{0}" ({1})'
                          .format(value, type(value)))
+
+
+def num_to_int(num):
+    """
+    Checks that a numerical value (e.g. returned by robot) is an integer and
+    not a float.
+
+    Parameters
+    ----------
+    num : number to check
+
+    Returns
+    -------
+    integer : num cast to an integer
+
+    Raises
+    ------
+    ValueError : if n is not an integer
+    """
+    if num % 1 == 0:
+        return int(num)
+    else:
+        raise ValueError('Expecting integer. Got: "{0}" ({1})'
+                         .format(num, type(num)))
