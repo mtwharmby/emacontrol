@@ -75,6 +75,35 @@ def test_set_sample_number():
                                      wait_for='setSamPosOffset:done;')
 
 
+def test_is_sample_mounted():
+    with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
+        ema = Robot()
+
+        send_mock.return_value = 'isSampleMounted:#Yes;'
+        mounted = ema.get_sample_mounted()
+
+        assert mounted is True
+        send_mock.assert_called_with('isSampleMounted;')
+
+        send_mock.return_value = 'isSampleMounted:#No;'
+        mounted = ema.get_sample_mounted()
+
+        assert mounted is False
+
+
+def test_set_sample_mounted():
+    with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
+        ema = Robot()
+
+        send_mock.return_value = 'sampleMounted:done;'
+        ema.set_sample_mounted(True)
+        send_mock.assert_called_with('sampleMounted;')
+
+        send_mock.return_value = 'sampleUnmounted:done;'
+        ema.set_sample_mounted(False)
+        send_mock.assert_called_with('sampleUnmounted;')
+
+
 def test_get_spin_position_offset():
     with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
         ema = Robot()

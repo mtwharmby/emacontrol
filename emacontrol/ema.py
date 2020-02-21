@@ -101,6 +101,21 @@ class Robot(SocketConnector):
         self.send('setSamPosOffset:#X{0:d}#Y{1:d};'.format(x_coord, y_coord),
                   wait_for='setSamPosOffset:done;')
 
+    def get_sample_mounted(self):
+        # TODO Docstring
+        mounted = self.send('isSampleMounted;').state[0]
+        if mounted.lower() == 'yes':
+            return True
+        else:
+            return False
+
+    def set_sample_mounted(self, state):
+        # TODO Docstring
+        if state is True:
+            self.send('sampleMounted;', wait_for='sampleMounted:done;')
+        else:
+            self.send('sampleUnmounted;', wait_for='sampleUnmounted:done;')
+
     def get_spin_position_offset(self):
         """
         Reads and returns the offset (trsf.{x,y,z} in VAL3) which has been
