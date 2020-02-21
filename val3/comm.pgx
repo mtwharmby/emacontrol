@@ -223,45 +223,45 @@
       // **********
       // Home position for the sample (sam)
       case "moveHome"
-        putln("Moving to home ...")
+        putln("Moving to home position ...")
         taskCreate "moveHome",10,moveManager(homePosition,mFastMov,"moveHome:done",sio_ID)
       break
 
       //Move to current sample offset position (home + offset)
       case "moveSamPos"
-        putln("Moving to current sample ...")
+        putln("Moving to current sample position ...")
         taskCreate "moveSamPos",10,moveManager(currentSamPosJ,mFastMov,"moveSamPos:done",sio_ID)
       break
 
       case "moveGate"
-        putln("Moving to gate ...")
+        putln("Moving to gate position ...")
         taskCreate "moveGate",10,moveManager(gatePosition,mFastMov,"moveGate:done",sio_ID)
       break
 
       // Home position (calibrated) for the spinner
       case "moveSpinHome"
-        putln("Moving to spinner home ...")
+        putln("Moving to spinner home position ...")
         taskCreate "moveSpinHome",10,moveManager(spinnerHomePos,mFastMov,"moveSpinHome:done",sio_ID)
       break
 
       //Move to current spinner offset position (spinnerHome + offset)
-      case "moveSpinner"
-        putln("Moving to spinner ...")
-        taskCreate "moveSpinner",10,moveManager(currentSpinPosJ,mFastMov,"moveSpinner:done",sio_ID)
+      case "moveSpinPos"
+        putln("Moving to spinner position...")
+        taskCreate "moveSpinPos",10,moveManager(currentSpinPosJ,mFastMov,"moveSpinPos:done",sio_ID)
       break
 
-      case "moveOffside"
-        putln("Moving to offside ...")
-        taskCreate "moveOffside",10,moveManager(parkingPosition,mFastMov,"moveOffside:done",sio_ID)
+      case "moveParkPos"
+        putln("Moving to parking position ...")
+        taskCreate "moveParkPos",10,moveManager(parkingPosition,mFastMov,"moveParkPos:done",sio_ID)
       break
 
       case "moveZero"
-        putln("Moving to zero ...")
+        putln("Moving to zero position ...")
         taskCreate "moveZero",10,moveManager(zeroPosition,mFastMov,"moveZero:done",sio_ID)
       break
 
       case "moveBin"
-        putln("Moving to bin ...")
+        putln("Moving to bin position...")
         taskCreate "moveBin",10,moveManager(binPosition,mFastMov,"moveBin:done",sio_ID)
       break
 

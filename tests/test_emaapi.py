@@ -47,9 +47,9 @@ def test_mount_sample(sample_num_mock, send_mock):
     send_calls = [call('moveSamPos;', wait_for='moveSamPos:done;'),
                   call('samplePick;', wait_for='samplePick:done;'),
                   call('moveGate;', wait_for='moveGate:done;'),
-                  call('moveSpinner;', wait_for='moveSpinner:done;'),
+                  call('moveSpinPos;', wait_for='moveSpinPos:done;'),
                   call('sampleRelease;', wait_for='sampleRelease:done;'),
-                  call('moveOffside;', wait_for='moveOffside:done;')
+                  call('moveParkPos;', wait_for='moveParkPos:done;')
                   ]
     send_mock.assert_has_calls(send_calls)
 
@@ -65,7 +65,7 @@ def test_unmount_sample(send_mock):
     # position in the magazine
     ema.started = True
     unmount_sample()
-    send_calls = [call('moveSpinner;', wait_for='moveSpinner:done;'),
+    send_calls = [call('moveSpinPos;', wait_for='moveSpinPos:done;'),
                   call('samplePick;', wait_for='samplePick:done;'),
                   call('moveGate;', wait_for='moveGate:done;'),
                   call('moveSamPos;', wait_for='moveSamPos:done;'),

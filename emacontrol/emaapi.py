@@ -81,9 +81,9 @@ def mount_sample(n, verbose=False):
     ema.send('moveSamPos;', wait_for='moveSamPos:done;')
     ema.send('samplePick;', wait_for='samplePick:done;')
     ema.send('moveGate;', wait_for='moveGate:done;')
-    ema.send('moveSpinner;', wait_for='moveSpinner:done;')
+    ema.send('moveSpinPos;', wait_for='moveSpinPos:done;')
     ema.send('sampleRelease;', wait_for='sampleRelease:done;')
-    ema.send('moveOffside;', wait_for='moveOffside:done;')
+    ema.send('moveParkPos;', wait_for='moveParkPos:done;')
     # TODO Log: 'Successfully mounted sample {}'
     print('Done')
 
@@ -102,7 +102,7 @@ def unmount_sample():
         raise Exception(msg)
     # TODO Log: 'Unmounting sample {}'
     print('Unmounting sample... ', end='', flush=True)
-    ema.send('moveSpinner;', wait_for='moveSpinner:done;')
+    ema.send('moveSpinPos;', wait_for='moveSpinPos:done;')
     ema.send('samplePick;', wait_for='samplePick:done;')
     ema.send('moveGate;', wait_for='moveGate:done;')
     ema.send('moveSamPos;', wait_for='moveSamPos:done;')
