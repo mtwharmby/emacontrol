@@ -1,8 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Programs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.staubli.com/robotics/VAL3/Program/2" >
-  <Program name="start" access="private" >
+  <Program name="observeStop" access="private" >
     <Code><![CDATA[begin
-  call comm()
+  while true
+    wait(taskIsDone==true)
+    stopMove()
+    wait(taskIsDone==false)
+    restartMove()
+  endWhile
 end]]></Code>
   </Program>
 </Programs>

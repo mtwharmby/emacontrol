@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Programs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.staubli.com/robotics/VAL3/Program/2" >
+  <Program name="powerSwitch" access="private" >
+    <Parameters xmlns="http://www.staubli.com/robotics/VAL3/Param/1" >
+      <Parameter name="enable" type="bool" use="value" xsi:type="element" dimensions="1" />
+      <Parameter name="command" type="string" use="value" xsi:type="element" dimensions="1" />
+      <Parameter name="sio_ID" type="num" use="value" xsi:type="element" dimensions="1" />
+    </Parameters>
+    <Locals>
+      <Local name="reply" type="string" xsi:type="array" size="1" />
+    </Locals>
+    <Code><![CDATA[begin
+  //**************************************************
+  // Method to enable or disable the power on the robot, depending whether the
+  // enable variable is true or false. Command argument is needed to construct
+  // the reply
+  //**************************************************
+  if enable
+    enablePower()
+  else
+    disablePower()
+  endIf
+
+  if (watch(isPowered()==enable,5)==false)
+    reply=command+":fail_'RobotPowerCannotBeSwitched'"
+  else
+    reply=command+":done"
+  endIf
+  taskCreate "sendStatus",10,sendStatus(reply,sio_ID)
+  taskKill("powerSwitch")
+end]]></Code>
+  </Program>
+</Programs>
