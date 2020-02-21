@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Programs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.staubli.com/robotics/VAL3/Program/2" >
+  <Program name="moveManager" access="private" >
+    <Parameters xmlns="http://www.staubli.com/robotics/VAL3/Param/1" >
+      <Parameter name="destination" type="joint" use="value" xsi:type="element" dimensions="1" />
+      <Parameter name="armSpeed" type="mdesc" use="value" xsi:type="element" dimensions="1" />
+      <Parameter name="reply" type="string" use="value" xsi:type="element" dimensions="1" />
+      <Parameter name="sio_ID" type="num" use="value" xsi:type="element" dimensions="1" />
+    </Parameters>
+    <Code><![CDATA[begin
+  //**************************************************
+  // Method to enable joint-based movements of the robot. The referenced
+  // observeStop() method allows interrupts/restarts to be handled
+  //**************************************************
+  taskIsDone=false
+  taskCreate "observeStop",5,observeStop()
+  movej(destination,flange,armSpeed)
+  waitEndMove()
+  taskCreate "sendStatus",10,sendStatus(reply,sio_ID)
+  taskKill("observeStop")
+end]]></Code>
+  </Program>
+</Programs>

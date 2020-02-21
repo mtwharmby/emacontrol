@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://www.staubli.com/robotics/VAL3/Project/3" >
+  <Parameters version="s7.7" stackSize="5000" millimeterUnit="true" />
+  <Programs>
+    <Program file="closeGripper.pgx" />
+    <Program file="comm.pgx" />
+    <Program file="moveManager.pgx" />
+    <Program file="notGrip.pgx" />
+    <Program file="observeStop.pgx" />
+    <Program file="powerSwitch.pgx" />
+    <Program file="sampleGripping.pgx" />
+    <Program file="sendStatus.pgx" />
+    <Program file="setCoords.pgx" />
+    <Program file="setSAM.pgx" />
+    <Program file="setSpeed.pgx" />
+    <Program file="start.pgx" />
+    <Program file="stop.pgx" />
+    <Program file="test.pgx" />
+  </Programs>
+  <Database>
+    <Data file="sampleChangerV4.dtx" />
+  </Database>
+  <Libraries>
+  </Libraries>
+  <Types>
+  </Types>
+</Project>

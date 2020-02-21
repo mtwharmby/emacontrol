@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Programs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.staubli.com/robotics/VAL3/Program/2" >
+  <Program name="sampleGripping" access="private" >
+    <Parameters xmlns="http://www.staubli.com/robotics/VAL3/Param/1" >
+      <Parameter name="gripSample" type="bool" use="value" xsi:type="element" dimensions="1" />
+      <Parameter name="command" type="string" use="value" xsi:type="element" dimensions="1" />
+      <Parameter name="sio_ID" type="num" use="value" xsi:type="element" dimensions="1" />
+    </Parameters>
+    <Locals>
+      <Local name="pickingPosJoint" type="jointRx" xsi:type="array" size="1" />
+      <Local name="pickingPosPoint" type="pointRx" xsi:type="array" size="1" />
+      <Local name="reply" type="string" xsi:type="array" size="1" />
+    </Locals>
+    <Code><![CDATA[begin
+  //**************************************************
+  // Method to take or place sample at the magazine or at the spinner.
+  // The former is determined by the gripSample argument. The latter
+  // is determined from the position (herej()) of the arm when this 
+  // method is called.
+  //**************************************************
+
+  // For picking samples (we end with sample in the gripper), we must have an open 
+  // gripper to start with
+  if (gripSample==true) and (switchGripper==true)
+    switchGripper=false
+  else
+  endIf
+
+  // The current pick position is either the currentSamPosJ or spinnerPosition
+  // We don't know which and to make this flexible we set for the scope of this method
+  pickingPosJoint=herej()
+  pickingPosPoint=jointToPoint(flange,world,pickingPosJoint)
+  // Move in to the sample
+  movel(appro(pickingPosPoint,{0,0,80,0,0,0}),flange,mNomSpeed)
+  waitEndMove()
+
+  // Grab the sample and move out
+  switchGripper=gripSample
+  movel(appro(pickingPosPoint,{0,0,0,0,0,0}),flange,mNomSpeed)
+  waitEndMove()
+
+  reply=command+":done"
+  taskCreate "sendStatus",10,sendStatus(reply,sio_ID)
+  taskKill("sampleGripping")
+
+end]]></Code>
+  </Program>
+</Programs>

@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Programs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.staubli.com/robotics/VAL3/Program/2" >
+  <Program name="setSpeed" access="private" >
+    <Parameters xmlns="http://www.staubli.com/robotics/VAL3/Param/1" >
+      <Parameter name="messageBuffer" type="string" use="value" xsi:type="element" dimensions="1" />
+      <Parameter name="sio_ID" type="num" use="value" xsi:type="element" dimensions="1" />
+    </Parameters>
+    <Locals>
+      <Local name="indexParam" type="num" xsi:type="array" size="1" />
+      <Local name="isNumber" type="bool" xsi:type="array" size="1" />
+      <Local name="numSpeedLoc" type="num" xsi:type="array" size="1" />
+      <Local name="reply" type="string" xsi:type="array" size="1" />
+    </Locals>
+    <Code><![CDATA[begin
+  //**************************************************
+  // Method to set the speed of the robot. Messages take the form:
+  //     setSpeed:#20
+  //**************************************************
+
+  // Find the parameter in the stringMessage and convert to a number
+  indexParam=find(messageBuffer,("#"))
+  toNum(right(messageBuffer,(len(messageBuffer)-(indexParam+1))),numSpeedLoc,isNumber)
+
+  // If conversion worked, set the speed; if not post a message and return
+  if isNumber==false
+    reply="setSpeed:fail_'Data is not a number'"
+    putln(toString("",indexParam))
+    putln(toString("",len(messageBuffer)-(indexParam+1)))
+    put("Failed setting speed. Found: ")
+    putln(right(messageBuffer,(len(messageBuffer)-indexParam)))
+  else
+    mFastMov.vel=numSpeedLoc
+    put("Speed = ")
+    putln(numSpeedLoc)
+    reply="setSpeed:done"
+  endIf
+
+  taskCreate "sendStatus",10,sendStatus(reply,sio_ID)
+end]]></Code>
+  </Program>
+</Programs>

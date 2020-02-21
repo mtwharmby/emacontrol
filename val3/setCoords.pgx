@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Programs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.staubli.com/robotics/VAL3/Program/2" >
+  <Program name="setCoords" access="private" >
+    <Parameters xmlns="http://www.staubli.com/robotics/VAL3/Param/1" >
+      <Parameter name="inputMessage" type="string" use="value" xsi:type="element" dimensions="1" />
+      <Parameter name="sio_ID" type="num" use="value" xsi:type="element" dimensions="1" />
+    </Parameters>
+    <Locals>
+      <Local name="isNumber" type="bool" xsi:type="array" size="2" />
+      <Local name="isOK" type="bool" xsi:type="array" size="1" />
+      <Local name="msgLength" type="num" xsi:type="array" size="1" />
+      <Local name="reply" type="string" xsi:type="array" size="1" />
+      <Local name="sampleCoordPnt" type="pointRx" xsi:type="array" size="1" />
+      <Local name="xMsgIndex" type="num" xsi:type="array" size="1" />
+      <Local name="yMsgIndex" type="num" xsi:type="array" size="1" />
+    </Locals>
+    <Code><![CDATA[begin
+  //**************************************************
+  // Method to set the coordinates of currentSamPosj (current sample position).
+  // Messages take the form:
+  //     setCoords:#X1#Y2
+  // Coordinate system starts at 0 (e.g. X=0, Y=0 is first sample position)
+  //**************************************************
+
+  // To start with the function is assumed working and we print the input
+  isOK=true
+  putln("Setting magazine coordinates based on:")
+  putln("   "+inputMessage)
+
+
+  // Find the where the coordinates are being supplied
+  xMsgIndex=find(inputMessage,"#X")
+  yMsgIndex=find(inputMessage,"#Y")
+  msgLength=len(inputMessage)
+
+  // Extract the coords from the message and convert string to number
+  toNum(mid(inputMessage,(yMsgIndex-(xMsgIndex+2)),(xMsgIndex+2)),coords[0],isNumber[0])
+  toNum(mid(inputMessage,(msgLength-(yMsgIndex+2)),(yMsgIndex+2)),coords[1],isNumber[1])
+
+  // Check conversion to number successful and print to screen
+  isOK=isOK and isNumber[0] and isNumber[1]
+  if isNumber[0]==false
+    reply="setCoords:fail_'Invalid X'"
+    put("Failed setting X. Found: ")
+    putln(right(inputMessage,(yMsgIndex-(xMsgIndex+2))))
+  elseIf isNumber[1]==false
+    reply="setCoords:fail_'Invalid Y'"
+    put("Failed setting Y. Found: ")
+    putln(right(inputMessage,(msgLength-(yMsgIndex+2))))
+  endIf
+
+  // Assuming we got the numbers, now we create our new joint coordinate
+  if isOK==true
+    put("Coords: X=")
+    put(coords[0])
+    put(" Y=")
+    putln(coords[1])
+    sampleCoordPnt=appro(jointToPoint(flange,world,homePosition),{(coords[0])*-17.03,(coords[1])*-17,0,0,0,0})
+    isOK=pointToJoint(flange,homePosition,sampleCoordPnt,currentSamPosJ)
+
+    if isOK==false
+      reply="setCoords:fail_'Could not convert position to joint'"
+      putln("Failed converting position to joint")
+    else
+      reply="setCoords:done"
+    endIf
+  endIf
+
+  taskCreate "sendStatus",10,sendStatus(reply,sio_ID)
+  taskKill("setCoords")
+end]]></Code>
+  </Program>
+</Programs>

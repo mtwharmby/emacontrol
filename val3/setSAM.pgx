@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Programs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.staubli.com/robotics/VAL3/Program/2" >
+  <Program name="setSAM" access="private" >
+    <Parameters xmlns="http://www.staubli.com/robotics/VAL3/Param/1" >
+      <Parameter name="messageBuffer" type="string" use="value" xsi:type="element" dimensions="1" />
+      <Parameter name="message" type="string" use="value" xsi:type="element" dimensions="1" />
+      <Parameter name="sio_ID" type="num" use="value" xsi:type="element" dimensions="1" />
+    </Parameters>
+    <Locals>
+      <Local name="indexX" type="num" xsi:type="array" size="1" />
+      <Local name="indexY" type="num" xsi:type="array" size="1" />
+      <Local name="indexZ" type="num" xsi:type="array" size="1" />
+      <Local name="isnum" type="bool" xsi:type="array" size="1" />
+      <Local name="samX" type="num" xsi:type="array" size="1" />
+      <Local name="samY" type="num" xsi:type="array" size="1" />
+      <Local name="samZ" type="num" xsi:type="array" size="1" />
+    </Locals>
+    <Code><![CDATA[begin
+  putln(messageBuffer)
+  currentPickPosJ=herej()
+  currentPickPos=jointToPoint(flange,world,currentPickPosJ)
+  //numXold=numXarray 
+  //numYold=numYarray
+  indexX=find(messageBuffer,("#Y"))
+  indexZ=find(messageBuffer,("#Z"))
+  toNum(left(messageBuffer,indexX),samX,isnum)
+  if isnum==false
+    taskCreate "sendStatus",10,sendStatus("... X is not a number ...",sio_ID)
+    putln("... X is not a number ...")
+  endIf
+  indexY=len(messageBuffer)-find(messageBuffer,("#Z"))-2
+  toNum(right(messageBuffer,indexY),samY,isnum)
+  if isnum==false
+    taskCreate "sendStatus",10,sendStatus("... Y is not a number ...",sio_ID)
+    putln("... Y is not a number ...")
+  endIf
+  toNum(mid(messageBuffer,indexZ-indexY,indexY+2),samZ,isnum)
+  if isnum==false
+    taskCreate "sendStatus",10,sendStatus("... Z is not a number ...",sio_ID)
+    putln("... Z is not a number ...")
+  endIf
+  putln("show sam values:")
+  putln(toString(".3",samX))
+  putln(toString(".3",samY))
+  putln(toString(".3",samZ))
+  movel(appro(currentPickPos,{samY,-samX,-samZ,0,0,0}),flange,mNomSpeed)
+  waitEndMove()
+  taskCreate "sendStatus",10,sendStatus(message,sio_ID)
+  putln(message)
+  //required shape: e.g. 'setSAM#X1.12345#Y2.3456#Z0.2345'
+end]]></Code>
+  </Program>
+</Programs>

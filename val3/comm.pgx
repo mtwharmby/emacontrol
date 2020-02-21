@@ -1,81 +1,245 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Programs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.staubli.com/robotics/VAL3/Program/2">
-  <Program name="comm">
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Programs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.staubli.com/robotics/VAL3/Program/2" >
+  <Program name="comm" access="private" >
+    <Locals>
+      <Local name="asciiMessage" type="num" xsi:type="array" size="32" />
+      <Local name="command" type="string" xsi:type="array" size="1" />
+      <Local name="gripState" type="string" xsi:type="array" size="1" />
+      <Local name="nchars" type="num" xsi:type="array" size="1" />
+      <Local name="reply" type="string" xsi:type="array" size="1" />
+      <Local name="sio_ID" type="num" xsi:type="array" size="1" />
+      <Local name="stringMessage" type="string" xsi:type="array" size="1" />
+      <Local name="stringPos" type="num" xsi:type="array" size="1" />
+      <Local name="waitForMessage" type="bool" xsi:type="array" size="1" />
+    </Locals>
     <Code><![CDATA[begin
+  //Disconnect running sessions
   clearBuffer(sioASCII)
-  for x=0 to 15
-    numMessage[x]=defNumMessage[x]
-  endFor
-  messageBuffer=""
+  // We initialise the current sample position as the homePosition for safety's sake!
+  currentSamPosJ=homePosition
+  stringMessage=""
+  // The following three lines can be deleted
+  numXold=0
+  numYold=0
+  numSpeed=5
   userPage()
   cls()
-  strBufMCP[0]="... server started ..."
-  putln(strBufMCP[0])
-  taskIsDone=false
+  putln("... server started ...")
+
+
+  // Provides the server-like behaviour
   while true
-    messageBuffer=""
-    sioGet(sioASCII,numMessage)
-    messageBuffer=chr(numMessage[0])
-    for x=1 to 15
-      messageBuffer=messageBuffer+chr(numMessage[x])
-    endFor
-    putln(messageBuffer)
-    if messageBuffer=="bin"
-      putln("... moving to bin ...")
-      taskCreate "moveBin",100,moveBin()
-    elseIf messageBuffer=="gate"
-      putln("... moving to gate ...")
-      taskCreate "moveGate",100,moveGate()
-    elseIf messageBuffer=="home"
-      putln("... moving to home ...")
-      taskCreate "moveHome",100,moveHome()
-    elseIf messageBuffer=="spinner"
-      putln("... moving to spinner ...")
-      taskCreate "moveSpinner",100,moveSpinner()
-    elseIf messageBuffer=="offside"
-      putln("... moving to offside ...")
-      taskCreate "moveOffside",100,moveOffside()
-    elseIf messageBuffer=="zero"
-      putln("... moving to zero ...")
-      taskCreate "moveZero",100,moveZero()
-    elseIf messageBuffer=="pick"
-      putln("... picking sample ...")
-      taskCreate "pickSample",100,pickSample()
-    elseIf messageBuffer=="release"
-      putln("... releasing sample ...")
-      taskCreate "releaseSample",100,releaseSample()
-    elseIf messageBuffer=="open"
-      putln("... open gripper ...")
-      taskCreate "openGripper",100,releaseSample()
-    elseIf messageBuffer=="close"
-      putln("... close gripper ...")
-      taskCreate "closeGripper",100,closeGripper()
-    elseIf messageBuffer=="powerOn"
-      putln("... turning motor power on ...")
-      taskCreate "powerOn",100,powerOn()  
-    elseIf messageBuffer=="powerOff"
-      putln("... turning motor power off ...")
-      taskCreate "powerOff",100,powerOff()
-    elseIf messageBuffer=="defX"
-      putln("...defining x-axis...")
-      taskCreate "setXaxis",100,setXaxis()
-    elseIf messageBuffer=="stopMotor"
-      putln("...all motors stopped...")
-      taskCreate "stopMotor",100,stopMotor()
-    elseIf messageBuffer=="restartMotor"
-      putln("...restarted all motors...")
-      taskCreate "restartMotor",100,setXaxis()
-    elseIf messageBuffer=="reset"
-      putln("...resetted all tasks...")
-      taskCreate "reset",100,reset()
+
+    // The next while loop handles receiving messages.
+    // The only way out is to recieve a message terminated with a ;
+    waitForMessage=true
+    while waitForMessage
+      // The sioASCII socket allows two connections. We need to check which has something it it
+      // Read recv buffer & place ASCII values in asciiMessage
+      nchars=sioGet(sioASCII[0],asciiMessage)
+      if nchars>0
+        sio_ID=0
+      else
+        nchars=sioGet(sioASCII[1],asciiMessage)
+        if nchars>0
+          sio_ID=1
+        else
+        endIf
+      endIf
+      //      put("nchars: ")
+      //      putln(nchars)
+
+      // sioGet returns a ASCII bytes. We need to decode them.
+      if nchars>0
+        stringMessage=chr(asciiMessage[0])
+        for stringPos=1 to 31
+          stringMessage=stringMessage+chr(asciiMessage[stringPos])
+        endFor
+        // We are finished with asciiMessage. Clear it
+        for stringPos=0 to 31
+          asciiMessage[stringPos]=0
+        endFor
+
+        // Check the last character in the message was a message end char (;)
+        // If not, inform the sender and don't do anything
+        if right(stringMessage,1)==";"
+          stringMessage=left(stringMessage,len(stringMessage)-1)
+          waitForMessage=false
+        else
+          call sendStatus(":fail_'No message end'",sio_ID)
+          stringMessage=""
+        endIf
+        //        put("stringMessage: ")
+        //        putln(stringMessage)
+      endIf
+    endWhile
+
+
+    // All incoming messages should be of the form:
+    //   command[:parameters]
+    // Trim off the parameters for the switch statement
+    stringPos=find(stringMessage,":")
+    if stringPos>0
+      command=left(stringMessage,stringPos)
     else
-      putln("...invalid command...")
+      command=stringMessage
     endIf
-        //
-    for x=0 to 15
-      numMessage[x]=defNumMessage[x]
-    endFor
-    messageBuffer=""
+    put("Command: ")
+    putln(command)
+
+    //Now decide how to handle the message
+    switch command
+      // Testing routines
+      // **********
+      case "hello"
+        call sendStatus("world",sio_ID)
+      break
+
+      case "test"
+        call test()
+      break
+
+      // Control routines
+      // **********
+      case "setCoords"
+        taskCreate "setCoords",10,setCoords(stringMessage,sio_ID)
+        wait(taskStatus("setCoords")==-1)
+      break
+
+      case "getCoords"
+        call sendStatus("getCoords:#X"+toString("",coords[0])+"#Y"+toString("",coords[1]),sio_ID)
+      break
+
+      //    case "setSAM"
+      //      stringMessage=right(stringMessage,len(stringMessage)-8)
+      //      putln("... correction of SAM settings required ...")
+      //      taskCreate "setSAM",10,setSAM(stringMessage,"setSAM:done",sio_ID)
+      //    break
+      //
+      //    case "getSAM"
+      //    break
+
+      case "setSpeed"
+        taskCreate "setSpeed",5,setSpeed(stringMessage,sio_ID)
+        wait(taskStatus("setSpeed")==-1)
+      break
+
+      case "getSpeed"
+        call sendStatus("getSpeed:#"+toString("",mFastMov.vel),sio_ID)
+      break
+
+      case "powerOn"
+        putln("Enabling robot power ...")
+        taskCreate "powerSwitch",10,powerSwitch(true,"powerOn",sio_ID)
+      break
+
+      case "powerOff"
+        putln("Disabling robot power ...")
+        taskCreate "powerSwitch",10,powerSwitch(false,"powerOff",sio_ID)
+      break
+
+      case "getPowerState"
+        putln("Get power status ...")
+        if (isPowered()==false)
+          reply="getPowerState:#Off"
+        else
+          reply="getPowerState:#On"
+        endIf
+        taskCreate "sendStatus",10,sendStatus(reply,sio_ID)
+      break
+
+      case "interrupt"
+        putln("Interrupt movement ...")
+        taskIsDone=true
+        call sendStatus("interrupt:done",sio_ID)
+      break
+
+      case "restart"
+        putln("Restart from interruption ...")
+        taskIsDone=false
+        call sendStatus("restart:done;",sio_ID)
+      break
+
+      case "getGripperState"
+        if switchGripper==true
+          gripState="closed"
+        else
+          gripState="open"
+        endIf
+        call sendStatus("getGripperState:"+gripState,sio_ID)
+      break
+
+      // Movement routines
+      // **********
+      case "moveCoords"
+        putln("Moving to current sample ...")
+        taskCreate "returnCurrent",10,moveManager(currentSamPosJ,mFastMov,"moveCoords:done",sio_ID)
+      break
+
+      case "moveGate"
+        putln("Moving to gate ...")
+        taskCreate "moveGate",10,moveManager(gatePosition,mFastMov,"moveGate:done",sio_ID)
+      break
+
+      case "moveHome"
+        putln("Moving to home ...")
+        taskCreate "moveHome",10,moveManager(homePosition,mFastMov,"moveHome:done",sio_ID)
+      break
+
+      case "moveSpinner"
+        putln("Moving to spinner ...")
+        taskCreate "moveSpinner",10,moveManager(spinnerPosition,mFastMov,"moveSpinner:done",sio_ID)
+      break
+
+      case "moveOffside"
+        putln("Moving to offside ...")
+        taskCreate "moveOffside",10,moveManager(parkingPosition,mFastMov,"moveOffside:done",sio_ID)
+      break
+
+      case "moveZero"
+        putln("Moving to zero ...")
+        taskCreate "moveZero",10,moveManager(zeroPosition,mFastMov,"moveZero:done",sio_ID)
+      break
+
+      case "moveBin"
+        putln("Moving to bin ...")
+        taskCreate "moveBin",10,moveManager(binPosition,mFastMov,"moveBin:done",sio_ID)
+      break
+
+      case "samplePick"
+        putln("Picking sample ...")
+        //taskCreate "pickSample",10,pickSample()
+        taskCreate "sampleGripping",10,sampleGripping(true,"samplePick",sio_ID)
+      break
+
+      case "sampleRelease"
+        putln("Releasing sample ...")
+        //taskCreate "releaseSample",10,releaseSample()
+        taskCreate "sampleGripping",10,sampleGripping(false,"sampleRelease",sio_ID)
+      break
+
+      case "gripperOpen"
+        putln("Open gripper ...")
+        switchGripper=false
+        taskCreate "sendStatus",10,sendStatus("gripperOpen:done",sio_ID)
+      break
+
+      case "gripperClose"
+        putln("Close gripper ...")
+        switchGripper=true
+        taskCreate "sendStatus",10,sendStatus("gripperClose:done",sio_ID)
+      break
+
+      default
+        call sendStatus(":fail_'Unrecognised Command!'",sio_ID)
+      break
+
+    endSwitch
+    // This message has been processed, so clear the stringMessage/command
+    stringMessage=""
+    command=""
+    sio_ID=-1
+
   endWhile
 end]]></Code>
   </Program>
