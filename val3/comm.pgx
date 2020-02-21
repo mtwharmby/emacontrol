@@ -1,8 +1,8 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
-<Programs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.staubli.com/robotics/VAL3/Program/2" >
-  <Program name="comm" access="private" >
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Programs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.staubli.com/robotics/VAL3/Program/2">
+  <Program name="comm">
     <Locals>
-      <Local name="asciiMessage" type="num" xsi:type="array" size="32" />
+      <Local name="asciiMessage" type="num" xsi:type="array" size="64" />
       <Local name="command" type="string" xsi:type="array" size="1" />
       <Local name="gripState" type="string" xsi:type="array" size="1" />
       <Local name="nchars" type="num" xsi:type="array" size="1" />
@@ -11,21 +11,33 @@
       <Local name="stringMessage" type="string" xsi:type="array" size="1" />
       <Local name="stringPos" type="num" xsi:type="array" size="1" />
       <Local name="waitForMessage" type="bool" xsi:type="array" size="1" />
+      <Local name="msgLength" type="num" xsi:type="array" size="1" />
     </Locals>
     <Code><![CDATA[begin
+  put("Starting sampleChangerV5.1...")
   //Disconnect running sessions
   clearBuffer(sioASCII)
   // We initialise the current sample position as the homePosition for safety's sake!
   currentSamPosJ=homePosition
   stringMessage=""
-  // The following three lines can be deleted
-  numXold=0
-  numYold=0
-  numSpeed=5
+  reply=""
+  msgLength=0
+
+  // Populate the collection of known positions
+  knownPositions["binPosition"] = binPosition
+  knownPositions["currentSamPos"] = currentSamPosJ
+  knownPositions["currentSpinPos"] = currentSpinPosJ
+  knownPositions["gatePosition"] = gatePosition
+  knownPositions["homePosition"] = homePosition
+  knownPositions["parkingPosition"] = parkingPosition
+  knownPositions["spinnerHomePos"] = spinnerHomePos
+  knownPositions["zeroPosition"] = zeroPosition
+  
   userPage()
   cls()
-  putln("... server started ...")
-
+  
+  putln("sampleChangerV5.1 server started.")
+  putln("Waiting for command...")
 
   // Provides the server-like behaviour
   while true
@@ -46,17 +58,18 @@
         else
         endIf
       endIf
-      //      put("nchars: ")
-      //      putln(nchars)
+      // Useful for debugging how many chars were received by the server
+      //put("nchars: ")
+      //putln(nchars)
 
       // sioGet returns a ASCII bytes. We need to decode them.
       if nchars>0
         stringMessage=chr(asciiMessage[0])
-        for stringPos=1 to 31
+        for stringPos=1 to 63
           stringMessage=stringMessage+chr(asciiMessage[stringPos])
         endFor
         // We are finished with asciiMessage. Clear it
-        for stringPos=0 to 31
+        for stringPos=0 to 63
           asciiMessage[stringPos]=0
         endFor
 
@@ -69,8 +82,9 @@
           call sendStatus(":fail_'No message end'",sio_ID)
           stringMessage=""
         endIf
-        //        put("stringMessage: ")
-        //        putln(stringMessage)
+        // Useful for debugging what was received by the server
+        //put("stringMessage: ")
+        //putln(stringMessage)
       endIf
     endWhile
 
@@ -101,23 +115,56 @@
 
       // Control routines
       // **********
-      case "setCoords"
-        taskCreate "setCoords",10,setCoords(stringMessage,sio_ID)
-        wait(taskStatus("setCoords")==-1)
+      case "setSamPosOffset"
+        taskCreate "setSamPosOffset",10,setSamPosOffs(stringMessage,sio_ID)
+        wait(taskStatus("setSamPosOffset")==-1)
       break
 
-      case "getCoords"
-        call sendStatus("getCoords:#X"+toString("",coords[0])+"#Y"+toString("",coords[1]),sio_ID)
+      case "getSamPosOffset"
+        reply="getSamPosOffset:#X"+toString(".3",numSamOffs[0])
+        reply=reply+"#Y"+toString(".3",numSamOffs[1])
+        call sendStatus(reply,sio_ID)
       break
 
-      //    case "setSAM"
-      //      stringMessage=right(stringMessage,len(stringMessage)-8)
-      //      putln("... correction of SAM settings required ...")
-      //      taskCreate "setSAM",10,setSAM(stringMessage,"setSAM:done",sio_ID)
-      //    break
-      //
-      //    case "getSAM"
-      //    break
+      case "setSpinPosOffset"
+        taskCreate "setSpinPosOff",10,setSpinPosOffs(stringMessage,sio_ID)
+        wait(taskStatus("setSpinPosOff")==-1)
+      break
+
+      case "getSpinPosOffset"
+        reply="getSpinPosOffset:#X"+toString(".3",numSpinOffs[0])+"#Y"+toString(".3",numSpinOffs[1])
+        reply=reply+"#Z"+toString(".3",numSpinOffs[2])+"#RX"+toString(".1",numSpinOffs[3])
+        reply=reply+"#RY"+toString(".1",numSpinOffs[4])+"#RZ"+toString(".1",numSpinOffs[5])
+        call sendStatus(reply,sio_ID)
+      break
+
+      case "getSpinPosition"
+        call getPosition("getSpinPosition",currentSpinPosJ,sio_ID)
+      break
+
+      case "getSpinHomePosition"
+        call getPosition("getSpinHomePosition",spinnerHomePos,sio_ID)
+      break
+
+      case "getCurrentPosition"
+        call getPosition("getCurrentPosition",herej(),sio_ID)
+      break
+      
+      case "getNearestPosition"
+        call getNearestPos(sio_ID)
+      break
+      
+      case "setCalibInfo"
+        // Sets calibration info string 
+        msgLength = len(stringMessage)
+        calibInfo = mid(stringMessage, (msgLength - 13), 13)
+        call sendStatus("setCalibInfo:done", sio_ID)
+      break
+      
+      case "getCalibInfo"
+       reply = "getCalibInfo:" + calibInfo
+       call sendStatus(reply,sio_ID)
+      break
 
       case "setSpeed"
         taskCreate "setSpeed",5,setSpeed(stringMessage,sio_ID)
@@ -150,14 +197,17 @@
 
       case "interrupt"
         putln("Interrupt movement ...")
-        taskIsDone=true
-        call sendStatus("interrupt:done",sio_ID)
+        // Temporarily stops movement. This is basically a pause!\
+        // Used by observeStop
+        moveIsStopped=true
+        call sendStatus("interrupt:done", sio_ID)
       break
 
       case "restart"
         putln("Restart from interruption ...")
-        taskIsDone=false
-        call sendStatus("restart:done;",sio_ID)
+        // Used by observeStop
+        moveIsStopped=false
+        call sendStatus("restart:done", sio_ID)
       break
 
       case "getGripperState"
@@ -171,9 +221,16 @@
 
       // Movement routines
       // **********
-      case "moveCoords"
+      // Home position for the sample (sam)
+      case "moveHome"
+        putln("Moving to home ...")
+        taskCreate "moveHome",10,moveManager(homePosition,mFastMov,"moveHome:done",sio_ID)
+      break
+
+      //Move to current sample offset position (home + offset)
+      case "moveSamPos"
         putln("Moving to current sample ...")
-        taskCreate "returnCurrent",10,moveManager(currentSamPosJ,mFastMov,"moveCoords:done",sio_ID)
+        taskCreate "moveSamPos",10,moveManager(currentSamPosJ,mFastMov,"moveSamPos:done",sio_ID)
       break
 
       case "moveGate"
@@ -181,14 +238,16 @@
         taskCreate "moveGate",10,moveManager(gatePosition,mFastMov,"moveGate:done",sio_ID)
       break
 
-      case "moveHome"
-        putln("Moving to home ...")
-        taskCreate "moveHome",10,moveManager(homePosition,mFastMov,"moveHome:done",sio_ID)
+      // Home position (calibrated) for the spinner
+      case "moveSpinHome"
+        putln("Moving to spinner home ...")
+        taskCreate "moveSpinHome",10,moveManager(spinnerHomePos,mFastMov,"moveSpinHome:done",sio_ID)
       break
 
+      //Move to current spinner offset position (spinnerHome + offset)
       case "moveSpinner"
         putln("Moving to spinner ...")
-        taskCreate "moveSpinner",10,moveManager(spinnerPosition,mFastMov,"moveSpinner:done",sio_ID)
+        taskCreate "moveSpinner",10,moveManager(currentSpinPosJ,mFastMov,"moveSpinner:done",sio_ID)
       break
 
       case "moveOffside"
@@ -206,15 +265,15 @@
         taskCreate "moveBin",10,moveManager(binPosition,mFastMov,"moveBin:done",sio_ID)
       break
 
+      // Sample Handling
+      // **********
       case "samplePick"
         putln("Picking sample ...")
-        //taskCreate "pickSample",10,pickSample()
         taskCreate "sampleGripping",10,sampleGripping(true,"samplePick",sio_ID)
       break
 
       case "sampleRelease"
         putln("Releasing sample ...")
-        //taskCreate "releaseSample",10,releaseSample()
         taskCreate "sampleGripping",10,sampleGripping(false,"sampleRelease",sio_ID)
       break
 
@@ -229,6 +288,28 @@
         switchGripper=true
         taskCreate "sendStatus",10,sendStatus("gripperClose:done",sio_ID)
       break
+      
+      case "isSampleMounted"
+        // Check the state of the sample mounted flag
+        if mounted == true
+          reply = "isSampleMounted:#Yes"
+        else
+          reply = "isSampleMounted:#No"
+        endIf
+        call sendStatus(reply, sio_ID)
+      break
+
+      case "sampleMounted"
+        // Set the sample mounted flag mounted (this is only s software flag)
+        mounted = true
+        taskCreate "sendStatus", 10, sendStatus("sampleMounted:done", sio_ID)
+      break
+
+      case "sampleUnmounted"
+        // Set the sample mounted flag not mounted (this is only a software flag)
+        mounted = false
+        taskCreate "sendStatus", 10, sendStatus("sampleUnmounted:done", sio_ID)
+      break
 
       default
         call sendStatus(":fail_'Unrecognised Command!'",sio_ID)
@@ -239,6 +320,8 @@
     stringMessage=""
     command=""
     sio_ID=-1
+    reply=""
+    msgLength=0
 
   endWhile
 end]]></Code>

@@ -1,11 +1,18 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
-<Programs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.staubli.com/robotics/VAL3/Program/2" >
-  <Program name="observeStop" access="private" >
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Programs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.staubli.com/robotics/VAL3/Program/2">
+  <Program name="observeStop">
     <Code><![CDATA[begin
+  //**************************************************
+  // Method interrupts a running move operation. This is
+  // equivalent to a pause.
+  //
+  // Method is triggered by a flag being set.
+  // N.B. Move is only stopped until flag is unset.
+  //**************************************************
   while true
-    wait(taskIsDone==true)
+    wait(moveIsStopped==true)
     stopMove()
-    wait(taskIsDone==false)
+    wait(moveIsStopped==false)
     restartMove()
   endWhile
 end]]></Code>

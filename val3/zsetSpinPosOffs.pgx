@@ -1,0 +1,133 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Programs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.staubli.com/robotics/VAL3/Program/2" >
+  <Program name="zsetSpinPosOffs" access="private" >
+    <Parameters xmlns="http://www.staubli.com/robotics/VAL3/Param/1" >
+      <Parameter name="inputMessage" type="string" use="value" xsi:type="element" dimensions="1" />
+      <Parameter name="sio_ID" type="num" use="value" xsi:type="element" dimensions="1" />
+    </Parameters>
+    <Locals>
+      <Local name="isNumber" type="bool" xsi:type="array" size="6" />
+      <Local name="isOK" type="bool" xsi:type="array" size="1" />
+      <Local name="msgLength" type="num" xsi:type="array" size="1" />
+      <Local name="reply" type="string" xsi:type="array" size="1" />
+      <Local name="rxMsgIndex" type="num" xsi:type="array" size="1" />
+      <Local name="ryMsgIndex" type="num" xsi:type="array" size="1" />
+      <Local name="rzMsgIndex" type="num" xsi:type="array" size="1" />
+      <Local name="spinnerPosPnt" type="pointRx" xsi:type="array" size="1" />
+      <Local name="xMsgIndex" type="num" xsi:type="array" size="1" />
+      <Local name="yMsgIndex" type="num" xsi:type="array" size="1" />
+      <Local name="zMsgIndex" type="num" xsi:type="array" size="1" />
+    </Locals>
+    <Code><![CDATA[begin
+  //**************************************************
+  //
+  // THIS VERSION IS AN EXAMPLE OF HOW TO DO ROTATIONS TOO
+  // IT IS NOT NEEDED (as of 16.02.2020). IT IS NOT USED!!!!
+  //
+  //
+  // Method to set the coordinates of currentSpinPosj (current spinner position).
+  // Messages take the form:
+  //     setSpinPos:#X1#Y2#Z3#RX4#RY5#RZ6
+  // Coordinate system starts at robot world frame origin (e.g. X=0, Y=0, Z=0, rx=0, ry=0, rz=0)
+  //**************************************************
+
+  // To start with the function is assumed working and we print the input
+  isOK=true
+  putln("Setting spinner coordinates based on:")
+  putln("   "+inputMessage)
+
+
+  // Find the where the coordinates are being supplied
+  xMsgIndex=find(inputMessage,"#X")
+  yMsgIndex=find(inputMessage,"#Y")
+  zMsgIndex=find(inputMessage,"#Z")
+  //rxMsgIndex = find(inputMessage,"#RX")
+  //ryMsgIndex = find(inputMessage,"#RY")
+  //rzMsgIndex = find(inputMessage,"#RZ")
+  msgLength=len(inputMessage)
+
+  // Extract the numSpinPos from the message and convert string to number
+  toNum(mid(inputMessage,(yMsgIndex-(xMsgIndex+2)),(xMsgIndex+2)),numSpinOffs[0],isNumber[0])
+  toNum(mid(inputMessage,(zMsgIndex-(yMsgIndex+2)),(yMsgIndex+2)),numSpinOffs[1],isNumber[1])
+  //  toNum(mid(inputMessage, (rxMsgIndex - (zMsgIndex + 2)), (zMsgIndex + 2)), numSpinOffs[2], isNumber[2])
+  //  toNum(mid(inputMessage, (ryMsgIndex - (rxMsgIndex + 2)), (rxMsgIndex + 2)), numSpinOffs[3], isNumber[3])
+  //  toNum(mid(inputMessage, (rzMsgIndex - (ryMsgIndex + 2)), (ryMsgIndex + 2)), numSpinOffs[4], isNumber[4])
+  //  toNum(mid(inputMessage, (msgLength - (rzMsgIndex + 2)), (rzMsgIndex + 2)), numSpinOffs[5], isNumber[5])
+  toNum(mid(inputMessage,(msgLength-(zMsgIndex+2)),(zMsgIndex+2)),numSpinOffs[2],isNumber[2])
+
+  //  toNum(mid(inputMessage, (msgLength - (yMsgIndex + 2)), (yMsgIndex + 2)), numSamOffs[1], isNumber[1])
+
+  // Check conversion to number successful and print to screen
+  isOK=isOK and isNumber[0] and isNumber[1] and isNumber[2]
+  //and isNumber[3] and isNumber[4] and isNumber[5]
+  if isNumber[0]==false
+    reply="setSpinPosOffset:fail_'Invalid X'"
+    put("Failed setting X. Found: ")
+    putln(right(inputMessage,(yMsgIndex-(xMsgIndex+2))))
+  elseIf isNumber[1]==false
+    reply="setSpinPosOffset:fail_'Invalid Y'"
+    put("Failed setting Y. Found: ")
+    putln(right(inputMessage,(zMsgIndex-(yMsgIndex+2))))
+  elseIf isNumber[2]==false
+    reply="setSpinPosOffset:fail_'Invalid Z'"
+    put("Failed setting Z. Found: ")
+    putln(right(inputMessage,(rxMsgIndex-(zMsgIndex+2))))
+    //  elseIf isNumber[3] == false
+    //    reply = "setSpinPosOffset:fail_'Invalid RX'"
+    //    put("Failed setting RX. Found: ")
+    //    putln(right(inputMessage, (ryMsgIndex - (rxMsgIndex + 2))))
+    //  elseIf isNumber[4] == false
+    //    reply = "setSpinPosOffset:fail_'Invalid RY'"
+    //    put("Failed setting RY. Found: ")
+    //    putln(right(inputMessage, (rzMsgIndex - (ryMsgIndex + 2))))
+    //  elseIf isNumber[5] == false
+    //    reply = "setSpinPosOffset:fail_'Invalid RZ'"
+    //    put("Failed setting RZ. Found: ")
+    //    putln(right(inputMessage, (msgLength - (rzMsgIndex + 2))))
+  endIf
+
+  // Assuming we got the numbers, now we create our new joint coordinate
+  if isOK==true
+    put("SpinPos: X=")
+    put(numSpinOffs[0])
+    put(" Y=")
+    putln(numSpinOffs[1])
+    put(" Z=")
+    putln(numSpinOffs[2])
+    //    put(" RX=")
+    //    putln(numSpinOffs[3])
+    //    put(" RY=")
+    //    putln(numSpinOffs[4])
+    //    put(" RY=")
+    //    putln(numSpinOffs[5])
+    spinnerPosPnt=compose(jointToPoint(flange,world,spinnerHomePos),world,{numSpinOffs[0],numSpinOffs[1],numSpinOffs[2],0,0,0})
+    //  Don't use appro - it applies the current rx,ry,rz rotation to any translations requested
+    //    spinnerPosPnt = appro(jointToPoint(flange,world,spinnerHomePos),{numSpinOffs[0],numSpinOffs[1],numSpinOffs[2],numSpinOffs[3],numSpinOffs[4],numSpinOffs[5]})
+    //    spinnerPosPnt = appro(jointToPoint(flange,world,spinnerHomePos),{numSpinOffs[0],numSpinOffs[1],numSpinOffs[2],0,0,0})
+    //
+    //  The following would make the set absolute positions. It's better to use a fixed position (SpinnerHome) and apply offsets  
+    //    currentPickPos.trsf.x = numSpinOffs[0]
+    //    currentPickPos.trsf.y = numSpinOffs[1]
+    //    currentPickPos.trsf.z = numSpinOffs[2]
+    //    currentPickPos.trsf.rx = numSpinOffs[3]
+    //    currentPickPos.trsf.ry = numSpinOffs[4]
+    //    currentPickPos.trsf.rz = numSpinOffs[5]
+    isOK=pointToJoint(flange,spinnerHomePos,spinnerPosPnt,currentSpinPosJ)
+    // We are using a joint arrangement in spinnerPosition from before v5 because it worked!
+
+    if isOK==true
+      reply="setSpinPosOffset:done"
+    else
+      reply="setSpinPosOffset:fail_'Could not convert position to joint'"
+      putln("Failed converting position to joint")
+    endIf
+  else
+    reply="setSpinPosOffset:fail_'Offset setting failed for unknown reason'"
+    putln("Failed setting offset: reason unknown'")
+  endIf
+
+  taskCreate "sendStatus",10,sendStatus(reply,sio_ID)
+  taskKill("setSpinPosOff")
+end]]></Code>
+  </Program>
+</Programs>

@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Programs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.staubli.com/robotics/VAL3/Program/2">
+  <Program name="getPosition">
+    <Parameters xmlns="http://www.staubli.com/robotics/VAL3/Param/1">
+      <Parameter name="getCommandName" type="string" xsi:type="element" />
+      <Parameter name="requestedJoint" type="joint" xsi:type="element" />
+      <Parameter name="sio_ID" type="num" xsi:type="element" />
+    </Parameters>
+    <Locals>
+      <Local name="message" type="string" xsi:type="array" size="1" />
+      <Local name="readPosition" type="pointRx" xsi:type="array" size="1" />
+    </Locals>
+    <Code><![CDATA[begin
+  //**************************************************
+  // Returns the contents of the trsf of the requested position.
+  // On testing, we found that whereas a distance can be requested with
+  // 2 or 3dp of precision, angles could not (got a runtime error on
+  // the robot. Hence we return angles with no dp; we only need 2dp for 
+  // distances.
+  //**************************************************
+  putln("getPosition:")
+  putln("   "+getCommandName)
+  readPosition=jointToPoint(flange,world,requestedJoint)
+  message=getCommandName+":#X"+toString(".2",readPosition.trsf.x)
+  message=message+"#Y"+toString(".2",readPosition.trsf.y)
+  message=message+"#Z"+toString(".2",readPosition.trsf.z)
+  message=message+"#RX"+toString("",readPosition.trsf.rx)
+  message=message+"#RY"+toString("",readPosition.trsf.ry)
+  message=message+"#RZ"+toString("",readPosition.trsf.rz)
+
+  call sendStatus(message,sio_ID)
+end]]></Code>
+  </Program>
+</Programs>

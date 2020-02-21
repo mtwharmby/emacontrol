@@ -12,7 +12,7 @@
   // Method to enable joint-based movements of the robot. The referenced
   // observeStop() method allows interrupts/restarts to be handled
   //**************************************************
-  taskIsDone=false
+  moveIsStopped=false
   taskCreate "observeStop",5,observeStop()
   movej(destination,flange,armSpeed)
   waitEndMove()
