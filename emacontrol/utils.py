@@ -1,3 +1,6 @@
+from collections import namedtuple
+
+
 def input_to_int(value):
     """
     Checks that user (string) input is an integer.
@@ -43,3 +46,6 @@ def num_to_int(num):
     else:
         raise ValueError('Expecting integer. Got: "{0}" ({1})'
                          .format(num, type(num)))
+
+
+CoordsXYZ = namedtuple('CoordsXYZ', ['x', 'y', 'z'])

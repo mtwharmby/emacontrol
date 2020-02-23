@@ -3,9 +3,8 @@ import os
 
 import numpy as np
 
-from collections import namedtuple
-
 from emacontrol.emaapi import ema  # FIXME Move to __init__.py
+from emacontrol.utils import CoordsXYZ
 
 
 # From ema.py  TODO Move to __init__.py
