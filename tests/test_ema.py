@@ -146,6 +146,15 @@ def test_get_spin_position():
                        'rx': 0.841, 'ry': 89.653, 'rz': -0.064}
 
 
+def test_get_diffr_pos_calib():
+    with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
+        send_mock.return_value = ('getDiffRel:#X7.0#Y6.232#Z-1.866;')
+
+        ema = Robot()
+        res = ema.get_diffr_pos_calib()
+        assert res == CoordsXYZ(7.0, 6.232, -1.866)
+
+
 # Method supports set_sample_number
 def test_sample_to_coords():
     # Some specific examples of coords calculated...

@@ -180,6 +180,11 @@ class Robot(SocketConnector):
         spin_pos = self.send('getSpinPosition;')
         return Robot._parse_state(spin_pos, ['X', 'Y', 'Z', 'RX', 'RY', 'RZ'])
 
+    def get_diffr_pos_calib(self):
+        # TODO docstring
+        diffr_pos_calib = self.send('getDiffRel;')
+        return Robot._parse_state(diffr_pos_calib, None, to_coordsxyz=True)
+
     def get_gripper_coords(self):
         """
         Gets the current location of the gripper and returns the x, y, z
@@ -295,7 +300,7 @@ class Robot(SocketConnector):
         return Response(command, result, state)
 
     @staticmethod
-    def _parse_state(response, keys):
+    def _parse_state(response, keys, to_coordsxyz=False):  # TODO Rename
         """
         Extracts only the requested keys from the state inside the given
         Response object. These are returned as a dictionary of lowercase keys
@@ -309,12 +314,18 @@ class Robot(SocketConnector):
         keys : list
         String names of items to be returned
 
+        to_coordsxyz : bool (default: False)
+        Returns a CoordsXYZ object. In this case the value of keys is ignored.
+
         Returns
         -------
         selected_keys : dict
         Dictionary with specified lowercase key names and their associated
         values.
         """
+        if to_coordsxyz:
+            state = Robot._parse_state(response, ['X', 'Y', 'Z'])
+            return CoordsXYZ(x=state['x'], y=state['y'], z=state['z'])
         return {key.lower(): response.state[key] for key in keys}
 
 
