@@ -154,16 +154,31 @@
         call getNearestPos(sio_ID)
       break
       
-      case "setCalibInfo"
-        // Sets calibration info string 
+      // diffOriPosition - absolute position (in robot coordinates) of the
+      // diffractometer origin. Determined when calibration routine run.
+      case "setDiffOrigin"
         msgLength = len(stringMessage)
-        calibInfo = mid(stringMessage, (msgLength - 13), 13)
-        call sendStatus("setCalibInfo:done", sio_ID)
+        diffOriPosition = mid(stringMessage, (msgLength - 14), 14)
+        call sendStatus("setDiffOrigin:done", sio_ID)
       break
       
-      case "getCalibInfo"
-       reply = "getCalibInfo:" + calibInfo
-       call sendStatus(reply,sio_ID)
+      case "getDiffOrigin"
+        reply = "getDiffOrigin:" + diffOriPosition
+        call sendStatus(reply, sio_ID)
+      break
+      
+      // diffRelPosition - position of the goniometer head at the time the
+      // calibration routine was run, relative to the diffractometer origin.
+      case "setDiffRel"
+        // Sets calibration info string 
+        msgLength = len(stringMessage)
+        diffRelPosition = mid(stringMessage, (msgLength - 11), 11)
+        call sendStatus("setDiffRel:done", sio_ID)
+      break
+      
+      case "getDiffRel"
+       reply = "getDiffRel:" + diffRelPosition
+       call sendStatus(reply, sio_ID)
       break
 
       case "setSpeed"
