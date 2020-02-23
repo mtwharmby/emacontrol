@@ -146,6 +146,15 @@ def test_get_spin_position():
                        'rx': 0.841, 'ry': 89.653, 'rz': -0.064}
 
 
+def test_get_diffr_origin():
+    with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
+        send_mock.return_value = ('getDiffOrigin:#X22.47#Y50.322#Z70.5;')
+
+        ema = Robot()
+        res = ema.get_diffr_origin_calib()
+        assert res == CoordsXYZ(22.47, 50.322, 70.5)
+
+
 def test_get_diffr_pos_calib():
     with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
         send_mock.return_value = ('getDiffRel:#X7.0#Y6.232#Z-1.866;')

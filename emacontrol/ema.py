@@ -180,6 +180,11 @@ class Robot(SocketConnector):
         spin_pos = self.send('getSpinPosition;')
         return Robot._parse_state(spin_pos, ['X', 'Y', 'Z', 'RX', 'RY', 'RZ'])
 
+    def get_diffr_origin_calib(self):
+        # TODO docstring
+        diffr_origin = self.send('getDiffOrigin;')
+        return Robot._parse_state(diffr_origin, None, to_coordsxyz=True)
+
     def get_diffr_pos_calib(self):
         # TODO docstring
         diffr_pos_calib = self.send('getDiffRel;')
