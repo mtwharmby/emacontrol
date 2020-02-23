@@ -103,7 +103,8 @@ class Robot(SocketConnector):
 
     def get_sample_mounted(self):
         # TODO Docstring
-        mounted = self.send('isSampleMounted;').state[0]
+        mounted = self.send('isSampleMounted;')
+        mounted = mounted.state[0]
         if mounted.lower() == 'yes':
             return True
         else:
