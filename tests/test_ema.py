@@ -80,16 +80,19 @@ def test_is_sample_mounted():
         ema = Robot()
 
         send_mock.return_value = 'isSampleMounted:#Yes;'
-        mounted = ema.is_sample_mounted()
-
-        assert mounted is True
+        assert ema.is_sample_mounted() is True
         send_mock.assert_called_with('isSampleMounted;')
 
         send_mock.return_value = 'isSampleMounted:#No;'
-        mounted = ema.is_sample_mounted()
+        assert ema.is_sample_mounted() is False
 
-        assert mounted is False
 
+def test_is_sample_mounted_bad():
+    with pytest.raises(RuntimeError, match=r"Unknown sample mount state.*"):
+        with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
+            ema = Robot()
+            send_mock.return_value = 'isSampleMounted:#Dunno;'
+            ema.is_sample_mounted()
 
 def test_get_nearest_pos():
     raise NotImplementedError

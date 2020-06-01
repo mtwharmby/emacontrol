@@ -104,18 +104,14 @@ class Robot(SocketConnector):
     def is_sample_mounted(self):
         # TODO Docstring
         mounted = self.send('isSampleMounted;')
-        mounted = mounted.state[0]
-        if mounted.lower() == 'yes':
+        is_mounted = mounted.state[0]
+        if is_mounted.lower() == 'yes':
             return True
-        else:
+        elif is_mounted.lower() == 'no':
             return False
-
-    def set_sample_mounted(self, state):
-        # TODO Docstring
-        if state is True:
-            self.send('sampleMounted;', wait_for='sampleMounted:done;')
         else:
-            self.send('sampleUnmounted;', wait_for='sampleUnmounted:done;')
+            msg = 'Unknown sample mount state \'{}\''.format(is_mounted)
+            raise RuntimeError(msg)
 
     def get_spin_position_offset(self):
         """
