@@ -72,8 +72,6 @@ class ConfigEditor():
 # FIXME Move to __init__.py
 ema_config = ConfigEditor(default_config)
 
-CoordsXYZ = namedtuple('CoordsXYZ', ['x', 'y', 'z'])
-
 
 def diffr_pos_to_xyz(samx, samy, samz, om, diffh, diffv, rotate_sense=1):
     """
