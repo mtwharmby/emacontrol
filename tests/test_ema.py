@@ -5,6 +5,7 @@ import sys
 from mock import patch
 
 from emacontrol.ema import Robot, Response
+from emacontrol.utils import CoordsXYZ
 
 pathlib_path = False  # As this doesn't work with python < 3.6
 if sys.version_info[0] >= 3:
@@ -57,7 +58,7 @@ def test_send(send_mock):
 def test_get_sample_number():
     with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
         send_mock.return_value = (
-            'getSamPosOffset:#X4#Y6;'
+            'getSamPosOffset:#X4    #Y6    ;'
         )  # This is raw output from the robot, hence __send__
 
         ema = Robot()

@@ -4,7 +4,7 @@ import re
 from collections import namedtuple
 
 from emacontrol.network import SocketConnector
-from emacontrol.utils import input_to_int, num_to_int
+from emacontrol.utils import input_to_int, num_to_int, CoordsXYZ
 
 # For Python >3.4, a more portable way to getting the home directory is:
 # from pathlib import Path
@@ -304,7 +304,7 @@ class Robot(SocketConnector):
 
         return Response(command, result, state)
 
-    @staticmethod
+    @staticmethod  # FIXME Rather than to_coords, create a separate method
     def _parse_state(response, keys, to_coordsxyz=False):  # TODO Rename
         """
         Extracts only the requested keys from the state inside the given
