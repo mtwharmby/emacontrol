@@ -5,7 +5,6 @@ import sys
 from mock import patch
 
 from emacontrol.ema import Robot, Response
-from emacontrol.utils import CoordsXYZ
 
 pathlib_path = False  # As this doesn't work with python < 3.6
 if sys.version_info[0] >= 3:
@@ -81,92 +80,38 @@ def test_is_sample_mounted():
         ema = Robot()
 
         send_mock.return_value = 'isSampleMounted:#Yes;'
-        mounted = ema.get_sample_mounted()
+        mounted = ema.is_sample_mounted()
 
         assert mounted is True
         send_mock.assert_called_with('isSampleMounted;')
 
         send_mock.return_value = 'isSampleMounted:#No;'
-        mounted = ema.get_sample_mounted()
+        mounted = ema.is_sample_mounted()
 
         assert mounted is False
 
 
-def test_set_sample_mounted():
-    with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
-        ema = Robot()
-
-        send_mock.return_value = 'sampleMounted:done;'
-        ema.set_sample_mounted(True)
-        send_mock.assert_called_with('sampleMounted;')
-
-        send_mock.return_value = 'sampleUnmounted:done;'
-        ema.set_sample_mounted(False)
-        send_mock.assert_called_with('sampleUnmounted;')
+def test_get_nearest_pos():
+    raise NotImplementedError
 
 
-def test_get_spin_position_offset():
-    with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
-        ema = Robot()
-        send_mock.return_value = (
-            'getSpinPosOffset:#X2.685#Y5.211#Z-8.646;'
-        )  # This is raw output from the robot, hence __send__
-        res = ema.get_spin_position_offset()
-        assert res == {'x': 2.685, 'y': 5.211, 'z': -8.646}
+def test_get_speed():
+    raise NotImplementedError
 
 
-def test_set_spin_position_offset():
-    with patch('emacontrol.emaapi.Robot.send') as send_mock:
-        ema = Robot()
-        ema.set_spin_position_offset(7, 6, 2)
-        send_mock.assert_called_with(('setSpinPosOffset:#X7.000#Y6.000'
-                                      + '#Z2.000;'),
-                                     wait_for='setSpinPosOffset:done;')
+def test_set_speed():
+    raise NotImplementedError
 
 
-def test_get_spin_home_position():
-    with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
-        ema = Robot()
-        send_mock.return_value = (
-            'getSpinHomePosition:#X26.785#Y52.111#Z86.146#RX0.841#RY89.653'
-            + '#RZ-0.064;'
-        )  # This is raw output from the robot, hence __send__
-        res = ema.get_spin_home_position()
-        assert res == {'x': 26.785, 'y': 52.111, 'z': 86.146,
-                       'rx': 0.841, 'ry': 89.653, 'rz': -0.064}
+def test_is_powered():
+    raise NotImplementedError
 
 
-def test_get_spin_position():
-    with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
-        ema = Robot()
-        send_mock.return_value = (
-            'getSpinPosition:#X29.47#Y57.322#Z77.5#RX0.841#RY89.653#RZ-0.064;'
-        )  # This is raw output from the robot, hence __send__
-        res = ema.get_spin_position()
-        assert res == {'x': 29.47, 'y': 57.322, 'z': 77.5,
-                       'rx': 0.841, 'ry': 89.653, 'rz': -0.064}
-
-
-def test_get_diffr_origin():
-    with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
-        send_mock.return_value = ('getDiffOrigin:#X22.47#Y50.322#Z70.5;')
-
-        ema = Robot()
-        res = ema.get_diffr_origin_calib()
-        assert res == CoordsXYZ(22.47, 50.322, 70.5)
-
-
-def test_get_diffr_pos_calib():
-    with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
-        send_mock.return_value = ('getDiffRel:#X7.0#Y6.232#Z-1.866;')
-
-        ema = Robot()
-        res = ema.get_diffr_pos_calib()
-        assert res == CoordsXYZ(7.0, 6.232, -1.866)
-
+###############################################################################
+# Static Methods
 
 # Method supports set_sample_number
-def test_sample_to_coords():
+def test_samplenr_to_xy():
     # Some specific examples of coords calculated...
     assert (0, 0) == Robot.samplenr_to_xy(1)
     assert (0, 1) == Robot.samplenr_to_xy(2)
@@ -180,33 +125,33 @@ def test_sample_to_coords():
             n += 1
 
 
-def test_sample_to_coords_bad_sample():
+def test_samplenr_to_xy_bad_sample():
     # Sample position numbers start at 1. Number must be > 0
     with pytest.raises(ValueError, match=r".*greater than 0"):
         Robot.samplenr_to_xy(0)
 
 
-def test_sample_to_coords_float():
+def test_samplenr_to_xy_float():
     # Sample numbers are integers. This is to catch dodgy user input.
     with pytest.raises(ValueError, match=r".*integer.*"):
         Robot.samplenr_to_xy(3.2)
 
 
-def test_coords_to_sample():
+def test_xy_to_samplenr():
     assert 1 == Robot.xy_to_samplenr({'x': 0.0, 'y': 0.0})
     assert 43 == Robot.xy_to_samplenr({'x': 4, 'y': 2})
     assert 157 == Robot.xy_to_samplenr({'x': 15, 'y': 6})
     assert 264 == Robot.xy_to_samplenr({'x': 26, 'y': 3.0})
 
 
-def test_coords_to_sample_float():
+def test_xy_to_samplenr_float():
     # We should get an error if a float with a non-zero fraction
     with pytest.raises(ValueError, match=r".*integer.*"):
         Robot.xy_to_samplenr({'x': 3.4, 'y': 5.0})
 
 
 # Method supports send
-def test_message_parser():
+def test_parse_message():
     output = Robot.parse_message('setCoords:done;')
     assert output == Response('setCoords', 'done', {})
 
@@ -233,3 +178,6 @@ def test_message_parser():
                               '',
                               {'X': 982, 'Y': 393, 'Z': -653, 'RX': 90,
                                'RY': 0, 'RZ': 0})
+
+def test_parse_response():
+    raise NotImplementedError

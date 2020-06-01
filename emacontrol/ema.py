@@ -4,7 +4,7 @@ import re
 from collections import namedtuple
 
 from emacontrol.network import SocketConnector
-from emacontrol.utils import input_to_int, num_to_int, CoordsXYZ
+from emacontrol.utils import input_to_int, num_to_int
 
 # For Python >3.4, a more portable way to getting the home directory is:
 # from pathlib import Path
@@ -77,7 +77,7 @@ class Robot(SocketConnector):
     def get_sample_number(self):
         # TODO Docstring
         coords = self.send('getSamPosOffset;')
-        return Robot.xy_to_samplenr(Robot._parse_state(coords, ['X', 'Y']))
+        return Robot.xy_to_samplenr(Robot.parse_response(coords, ['X', 'Y']))
 
     def set_sample_number(self, n, verbose=False):
         """
@@ -101,7 +101,7 @@ class Robot(SocketConnector):
         self.send('setSamPosOffset:#X{0:d}#Y{1:d};'.format(x_coord, y_coord),
                   wait_for='setSamPosOffset:done;')
 
-    def get_sample_mounted(self):
+    def is_sample_mounted(self):
         # TODO Docstring
         mounted = self.send('isSampleMounted;')
         mounted = mounted.state[0]
@@ -304,8 +304,8 @@ class Robot(SocketConnector):
 
         return Response(command, result, state)
 
-    @staticmethod  # FIXME Rather than to_coords, create a separate method
-    def _parse_state(response, keys, to_coordsxyz=False):  # TODO Rename
+    @staticmethod
+    def parse_response(response, keys):
         """
         Extracts only the requested keys from the state inside the given
         Response object. These are returned as a dictionary of lowercase keys
@@ -319,18 +319,12 @@ class Robot(SocketConnector):
         keys : list
         String names of items to be returned
 
-        to_coordsxyz : bool (default: False)
-        Returns a CoordsXYZ object. In this case the value of keys is ignored.
-
         Returns
         -------
         selected_keys : dict
         Dictionary with specified lowercase key names and their associated
         values.
         """
-        if to_coordsxyz:
-            state = Robot._parse_state(response, ['X', 'Y', 'Z'])
-            return CoordsXYZ(x=state['x'], y=state['y'], z=state['z'])
         return {key.lower(): response.state[key] for key in keys}
 
 
