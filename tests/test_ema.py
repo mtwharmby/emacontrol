@@ -107,7 +107,23 @@ def test_set_speed():
 
 
 def test_is_powered():
-    raise NotImplementedError
+    with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
+        ema = Robot()
+
+        send_mock.return_value = 'getPowerState:#On;'
+        assert ema.is_powered() is True
+        send_mock.assert_called_with('getPowerState;')
+
+        send_mock.return_value = 'getPowerState:#Off;'
+        assert ema.is_powered() is False
+
+
+def test_is_powered_bad():
+    with pytest.raises(RuntimeError, match=r"Unknown power state.*"):
+        with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
+            ema = Robot()
+            send_mock.return_value = 'getPowerState:#Bleep;'
+            ema.is_powered()
 
 
 ###############################################################################

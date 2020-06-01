@@ -133,82 +133,17 @@ class Robot(SocketConnector):
         the robot to yield the new currentSpinPosJ. These values should be
         calculated from the goniometer head encoder positions.
 
-        Parameters
-        ----------
-        spin_x, spin_y, spin_z : float
-        New offsets in three dimensions for the spinner in mm
-        """
-        if verbose:
-            print('Spinner coords: ({}, {}, {})'.format(spin_x, spin_y,
-                                                        spin_z))
-        self.send(('setSpinPosOffset:'
-                   + '#X{0:.3f}#Y{1:.3f}#Z{2:.3f};'.format(spin_x, spin_y,
-                                                           spin_z)),
-                  wait_for='setSpinPosOffset:done;')
-
-    def get_spin_home_position(self):
-        """
-        Reads the SpinHomePosition, i.e. the position where the robot was last
-        calibrated against the goniometer head. This is the position which
-        offsets are applied to.
-
-        Returns
-        -------
-        spin_home_pos : dict
-        A six-member dictionary containing the translations (3x in mm) and
-        rotations (3x in degrees) of the spinner home position.
-        """
-        spin_home = self.send('getSpinHomePosition;')
-        return Robot._parse_state(spin_home, ['X', 'Y', 'Z', 'RX', 'RY', 'RZ'])
-
-    def get_spin_position(self):
-        """
-        Reads the current spinner position (i.e. SpinHomePosition + offset =
-        currentSpinPosJ in VAL3). The returned values are absolute in the
-        robot reference frame.
-
-        Returns
-        -------
-        current_spin_pos : dict
-        A six-member dictionary containing the translations (3x in mm) and
-        rotations (3x in degrees) of the spinner position.
-        """
-        spin_pos = self.send('getSpinPosition;')
-        return Robot._parse_state(spin_pos, ['X', 'Y', 'Z', 'RX', 'RY', 'RZ'])
-
-    def get_diffr_origin_calib(self):
-        # TODO docstring
-        diffr_origin = self.send('getDiffOrigin;')
-        return Robot._parse_state(diffr_origin, None, to_coordsxyz=True)
-
-    def get_diffr_pos_calib(self):
-        # TODO docstring
-        diffr_pos_calib = self.send('getDiffRel;')
-        return Robot._parse_state(diffr_pos_calib, None, to_coordsxyz=True)
-
-    def get_gripper_coords(self):
-        """
-        Gets the current location of the gripper and returns the x, y, z
-        coordinates.
-
-        Returns
-        -------
-        coords : tuple
-        x, y, z coordinates of the gripper in mm.
-        """
-        # FIXME If we can just return the gripper coords rather than the
-        # spinner, we don't actually have to store the position of the gripper
-        # as the "spinner position". We just have to move the gripper to the
-        # right place.
-        return self.get_spinner_coords()
-
-    # def isPowered(self):
-    #     power_state = self.send('getPowerState;')
-    #     _, _, state = Robot.message_parser(power_state)
-    #     if state.lower() == 'on':
-    #         return True
-    #     else:
-    #         return False
+    def is_powered(self):
+        # TODO Docstring
+        powered = self.send('getPowerState;')
+        is_ema_powered = powered.state[0]
+        if is_ema_powered.lower() == 'on':
+            return True
+        elif is_ema_powered.lower() == 'off':
+            return False
+        else:
+            msg = 'Unknown power state \'{}\''.format(is_ema_powered)
+            raise RuntimeError(msg)
 
     @staticmethod
     def samplenr_to_xy(n):
