@@ -171,32 +171,37 @@ def test_xy_to_samplenr_float():
 
 # Method supports send
 def test_parse_message():
+    # TODO Add one example of each output
+    # TODO Add test of no match
     output = Robot.parse_message('setCoords:done;')
     assert output == Response('setCoords', 'done', {})
 
     output = Robot.parse_message('getPowerState:#On;')
-    assert output == Response('getPowerState', '', {0: 'On', })
+    assert output == Response('getPowerState', 'ok', {0: 'On', })
 
     output = Robot.parse_message('getCoords:#X4#Y2;')
-    assert output == Response('getCoords', '', {'X': 4, 'Y': 2})
+    assert output == Response('getCoords', 'ok', {'X': 4, 'Y': 2})
 
     msg = 'powerOn:fail_\'RobotPowerCannotBeSwitched\';'
     output = Robot.parse_message(msg)
     assert output == Response('powerOn',
                               'fail',
-                              {0: 'RobotPowerCannotBeSwitched'})
+                              {'msg': 'RobotPowerCannotBeSwitched'})
 
     output = Robot.parse_message('getSAM:#X1.432#Y2.643#Z0.53;')
     assert output == Response('getSAM',
-                              '',
+                              'ok',
                               {'X': 1.432, 'Y': 2.643, 'Z': 0.53})
 
     output = Robot.parse_message(('getSpinHomePosition:#X982#Y393#Z-653#RX90'
                                   + '#RY0#RZ0;'))
     assert output == Response('getSpinHomePosition',
-                              '',
+                              'ok',
                               {'X': 982, 'Y': 393, 'Z': -653, 'RX': 90,
                                'RY': 0, 'RZ': 0})
 
-def test_parse_response():
-    raise NotImplementedError
+    output = Robot.parse_message(('getCurrentPosition:#DIST99.993#POS_current'
+                                  + 'SamPos;'))
+    assert output == Response('getCurrentPosition',
+                              'ok',
+                              {'DIST': 99.993, 'POS': 'currentSamPos'})

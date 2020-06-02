@@ -204,36 +204,64 @@ class Robot(SocketConnector):
         response : namedtuple
         Response (command; result; status)
         """
-        command, response = message.strip(';').split(':')
-        result = ''
-        state = {}
+        params = {}
 
-        # First handle the case we get some parameters back
-        if response[0] == '#':
-            param_parts = re.findall(
-                r'(?P<chars>[A-Za-z]+)(?P<nums>[-0-9\.]*)',
-                response
-            )
+        # Highly specific regex as we expect a well defined reponse from VAL3.
+        # Anything else implies we have a problem.
+        re_response = re.match(
+            (r"(?P<cmd>[A-Za-z]+):(?:(?P<state>[A-Za-z]+)"
+             + r"(?:_(?P<msg>[A-Za-z']+))?|(?P<params>#.*));"), message)
 
-            for idx, param in enumerate(param_parts):
-                chars, nums = param
+        if re_response:
+            command = re_response.group('cmd')
+            # A command name is always received. Additionally receive either a
+            # state or a parameters list.
+            if re_response.group('state'):
+                state = re_response.group('state')
 
-                # Are these named parameters? If so separate values and names
-                if nums:
-                    try:
-                        state[chars] = input_to_int(nums)
-                    except ValueError:
-                        state[chars] = float(nums)
-                else:
-                    state[idx] = chars
-        # Or is this just a string response?
+                if re_response.group('msg'):
+                    # The state has a message associated with it (probably
+                    # means something went wrong)
+                    # - strip needed as string may be enclosed in single quotes
+                    params['msg'] = re_response.group('msg').strip("\'")
+
+            elif re_response.group('params'):
+                # We have a list of parameters to process. This means the
+                # command completed successfully (even if it doesn't send back
+                # a state)
+                state = 'ok'
+
+                params_string = re_response.group('params')
+                re_params_iter = re.finditer(
+                    (r'#(?P<name>[A-Za-z]+)(?:(?=(?P<nums>[-0-9\.]+)|_'
+                     + r'(?P<str>[A-Za-z]+))|.?)'),
+                    params_string)
+
+                for idx, par in enumerate(re_params_iter):
+                    param_name = par.group('name')
+
+                    if par.group('nums'):
+                        # Numerical parameter value. Is it an int or a float?
+                        try:
+                            params[param_name] = input_to_int(
+                                par.group('nums'))
+                        except ValueError:
+                            params[param_name] = float(par.group('nums'))
+
+                    elif par.group('str'):
+                        # String parameter value
+                        # - strip needed as string may be enclosed in single
+                        #   quotes
+                        params[param_name] = par.group('str').strip("\'")
+
+                    else:
+                        # We only have the value of the parameter. Write it
+                        # with its index.
+                        params[idx] = param_name
         else:
-            response = response.split('_')
-            result = response[0]
-            if len(response) == 2:
-                state[0] = response[1].strip('\'')
+            raise RuntimeError('Error parsing message from VAL3')
 
-        return Response(command, result, state)
+        return Response(command, state, params)
 
     @staticmethod
     def parse_response(response, keys):
@@ -256,8 +284,8 @@ class Robot(SocketConnector):
         Dictionary with specified lowercase key names and their associated
         values.
         """
-        return {key.lower(): response.state[key] for key in keys}
+        return {key.lower(): response.params[key] for key in keys}
 
 
 # namedtuple provides storage for a parsed responses from send method
-Response = namedtuple('Response', ['command', 'result', 'state'])
+Response = namedtuple('Response', ['command', 'state', 'params'])
