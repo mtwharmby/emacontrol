@@ -171,37 +171,60 @@ def test_xy_to_samplenr_float():
 
 # Method supports send
 def test_parse_message():
-    # TODO Add one example of each output
     # TODO Add test of no match
-    output = Robot.parse_message('setCoords:done;')
-    assert output == Response('setCoords', 'done', {})
+    res = Robot.parse_message('getSamPosOffset:#X0    #Y0    ;')
+    assert res == Response('getSamPosOffset', 'ok', {'X': 0, 'Y': 0})
 
-    output = Robot.parse_message('getPowerState:#On;')
-    assert output == Response('getPowerState', 'ok', {0: 'On', })
+    res = Robot.parse_message('setSamPos:done;')
+    assert res == Response('setSamPos', 'done', {})
 
-    output = Robot.parse_message('getCoords:#X4#Y2;')
-    assert output == Response('getCoords', 'ok', {'X': 4, 'Y': 2})
+    res = Robot.parse_message('powerOff:done;')
+    assert res == Response('powerOff', 'done', {})
 
-    msg = 'powerOn:fail_\'RobotPowerCannotBeSwitched\';'
-    output = Robot.parse_message(msg)
-    assert output == Response('powerOn',
-                              'fail',
-                              {'msg': 'RobotPowerCannotBeSwitched'})
+    res = Robot.parse_message("powerOn:fail_'RobotPowerCannotBeSwitched';")
+    assert res == Response('powerOn', 'fail',
+                           {'msg': 'RobotPowerCannotBeSwitched'})
 
-    output = Robot.parse_message('getSAM:#X1.432#Y2.643#Z0.53;')
-    assert output == Response('getSAM',
-                              'ok',
-                              {'X': 1.432, 'Y': 2.643, 'Z': 0.53})
+    res = Robot.parse_message('getPowerState:#On;')
+    assert res == Response('getPowerState', 'ok', {0: 'On', })
 
-    output = Robot.parse_message(('getSpinHomePosition:#X982#Y393#Z-653#RX90'
-                                  + '#RY0#RZ0;'))
-    assert output == Response('getSpinHomePosition',
-                              'ok',
-                              {'X': 982, 'Y': 393, 'Z': -653, 'RX': 90,
-                               'RY': 0, 'RZ': 0})
+    res = Robot.parse_message('getGripperState:open;')
+    assert res == Response('getGripperState', 'open', {})
+    # TODO Should be Reponse('getGripperState', 'ok', {0: 'open'})
 
-    output = Robot.parse_message(('getCurrentPosition:#DIST99.993#POS_current'
-                                  + 'SamPos;'))
-    assert output == Response('getCurrentPosition',
-                              'ok',
-                              {'DIST': 99.993, 'POS': 'currentSamPos'})
+    res = Robot.parse_message('getSpeed:#100;')
+    assert res == Response('getSpeed', 'ok', {0: 100})
+    # FIXME This breaks the regex
+    # res = Robot.parse_message('getSpeed:#50.5;')
+    # assert res == Response('getSpeed', 'ok', {0: 50.5})
+
+    res = Robot.parse_message('isSampleMounted:#Yes;')
+    assert res == Response('isSampleMounted', 'ok', {0: 'Yes'})
+    res = Robot.parse_message('isSampleMounted:#No;')
+    assert res == Response('isSampleMounted', 'ok', {0: 'No'})
+
+    res = Robot.parse_message(('getSpinPosOffset:#X2.3  #Y4.2  #Z6.1  #RX0  '
+                               + '#RY0  #RZ0  ;'))
+    assert res == Response('getSpinPosOffset', 'ok',
+                           {'X': 2.3, 'Y': 4.2, 'Z': 6.1, 'RX': 0, 'RY': 0,
+                            'RZ': 0})
+
+    res = Robot.parse_message(('getSpinPosition:#X984.71#Y397.23#Z-647.12'
+                               + '#RX90#RY0#RZ90;'))
+    assert res == Response('getSpinPosition', 'ok',
+                           {'X': 984.71, 'Y': 397.23, 'Z': -647.12,
+                            'RX': 90, 'RY': 0, 'RZ': 90})
+
+    # This is from the command getNearestPosition; (!)
+    res = Robot.parse_message(('getCurrentPosition:#DIST99.993'
+                               + '#POS_currentSamPos;'))
+    assert res == Response('getCurrentPosition', 'ok',
+                           {'DIST': 99.993, 'POS': 'currentSamPos'})
+
+    res = Robot.parse_message('getDiffOrigin:#X2#Y6#Z4;')
+    assert res == Response('getDiffOrigin', 'ok', {'X': 2, 'Y': 6, 'Z': 4})
+
+    # TODO Fix regex for this...
+    # res = Robot.parse_message(":fail_'Unrecognised Command!';")
+    # assert res == Response('', 'fail', {'msg': 'Unrecognised Command!'})
+

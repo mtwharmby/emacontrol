@@ -1,6 +1,17 @@
 from collections import namedtuple
 
 
+# TODO Refactor module
+
+def input_to_number(value):
+    # TODO Docstring
+    try:
+        return input_to_int(value)
+    except ValueError:
+        # If this fails, value is definitely a string!
+        return float(value)
+
+
 def input_to_int(value):
     """
     Checks that user (string) input is an integer.

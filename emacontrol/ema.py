@@ -4,7 +4,7 @@ import re
 from collections import namedtuple
 
 from emacontrol.network import SocketConnector
-from emacontrol.utils import input_to_int, num_to_int
+from emacontrol.utils import input_to_number, input_to_int, num_to_int
 
 # For Python >3.4, a more portable way to getting the home directory is:
 # from pathlib import Path
@@ -233,7 +233,7 @@ class Robot(SocketConnector):
 
                 params_string = re_response.group('params')
                 re_params_iter = re.finditer(
-                    (r'#(?P<name>[A-Za-z]+)(?:(?=(?P<nums>[-0-9\.]+)|_'
+                    (r'#(?P<name>[A-Za-z]+|\d+)(?:(?=(?P<nums>[-0-9\.]+)|_'
                      + r'(?P<str>[A-Za-z]+))|.?)'),
                     params_string)
 
@@ -257,9 +257,14 @@ class Robot(SocketConnector):
                     else:
                         # We only have the value of the parameter. Write it
                         # with its index.
-                        params[idx] = param_name
+                        try:
+                            param_val = input_to_number(param_name)
+                        except ValueError:
+                            param_val = param_name
+                        params[idx] = param_val
         else:
-            raise RuntimeError('Error parsing message from VAL3')
+            msg = 'Unexpected message format: "{}"'.format(message)
+            raise RuntimeError(msg)
 
         return Response(command, state, params)
 
