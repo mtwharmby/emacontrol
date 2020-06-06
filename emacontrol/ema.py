@@ -85,8 +85,9 @@ class Robot(SocketConnector):
 
     def set_sample_number(self, n, verbose=False):
         """
-        Sets the xy coordinates for the next sample to mount based on the index
-        of that sample. Sends these coordinates to the robot controller.
+        Sets the xy sample coordinates for the next sample to mount based on
+        the index of that sample. Sends these coordinates to the robot
+        controller.
 
         Parameters
         ----------
@@ -95,8 +96,16 @@ class Robot(SocketConnector):
 
         verbose : boolean
         If true prints the sample coordinates to screen
+
+        Raises
+        ------
+        RuntimeError
+        When requested sample number is outside the range 0 to 300.
         """
-        self.sample_index = n
+        if n < 1 or n > 300:
+            raise RuntimeError(('Invalid sample position. Mustbe in range '
+                                + '0 to 300'))
+        self.sample_index = n  # FIXME This isn't needed
         x_coord, y_coord = Robot.samplenr_to_xy(n)
         # TODO Log: 'Setting sample coordinates for sample {} to ({}, {})'
         # .format(n, x_coord, coord)
@@ -121,7 +130,8 @@ class Robot(SocketConnector):
         return speed_resp.params[0]
 
     def set_speed(self, speed_pc):
-        # TODO Docstring
+        if speed <= 0.0 or > 100:
+            raise RuntimeError('Speed should be set between 0 and 100 %')
         msg = 'setSpeed:#{};'.format(speed_pc)
         self.send(msg, wait_for='setSpeed:done;')
 

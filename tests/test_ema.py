@@ -81,6 +81,16 @@ def test_set_sample_number():
                                      wait_for='setSamPosOffset:done;')
 
 
+def test_set_sample_number_bad():
+    with pytest.raises(RuntimeError, match=r"Invalid sample position.*"):
+        ema = Robot()
+        ema.set_sample_number(-1)
+
+    with pytest.raises(RuntimeError, match=r"Invalid sample position.*"):
+        ema = Robot()
+        ema.set_sample_number(301)
+
+
 def test_get_speed():
     with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
         ema = Robot()
