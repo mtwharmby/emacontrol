@@ -75,29 +75,6 @@ def test_set_sample_number():
                                      wait_for='setSamPosOffset:done;')
 
 
-def test_is_sample_mounted():
-    with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
-        ema = Robot()
-
-        send_mock.return_value = 'isSampleMounted:#Yes;'
-        assert ema.is_sample_mounted() is True
-        send_mock.assert_called_with('isSampleMounted;')
-
-        send_mock.return_value = 'isSampleMounted:#No;'
-        assert ema.is_sample_mounted() is False
-
-
-def test_is_sample_mounted_bad():
-    with pytest.raises(RuntimeError, match=r"Unknown sample mount state.*"):
-        with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
-            ema = Robot()
-            send_mock.return_value = 'isSampleMounted:#Dunno;'
-            ema.is_sample_mounted()
-
-def test_get_nearest_pos():
-    raise NotImplementedError
-
-
 def test_get_speed():
     with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
         ema = Robot()
@@ -115,6 +92,10 @@ def test_set_speed():
         ema.set_speed(75.6)
         send_mock.assert_called_with('setSpeed:#75.6;',
                                      wait_for='setSpeed:done;')
+
+
+def test_get_nearest_pos():
+    raise NotImplementedError
 
 
 def test_is_powered():
@@ -135,6 +116,26 @@ def test_is_powered_bad():
             ema = Robot()
             send_mock.return_value = 'getPowerState:#Bleep;'
             ema.is_powered()
+
+
+def test_is_sample_mounted():
+    with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
+        ema = Robot()
+
+        send_mock.return_value = 'isSampleMounted:#Yes;'
+        assert ema.is_sample_mounted() is True
+        send_mock.assert_called_with('isSampleMounted;')
+
+        send_mock.return_value = 'isSampleMounted:#No;'
+        assert ema.is_sample_mounted() is False
+
+
+def test_is_sample_mounted_bad():
+    with pytest.raises(RuntimeError, match=r"Unknown sample mount state.*"):
+        with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
+            ema = Robot()
+            send_mock.return_value = 'isSampleMounted:#Dunno;'
+            ema.is_sample_mounted()
 
 
 ###############################################################################

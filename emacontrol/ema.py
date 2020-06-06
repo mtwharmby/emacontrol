@@ -101,18 +101,6 @@ class Robot(SocketConnector):
         self.send('setSamPosOffset:#X{0:d}#Y{1:d};'.format(x_coord, y_coord),
                   wait_for='setSamPosOffset:done;')
 
-    def is_sample_mounted(self):
-        # TODO Docstring
-        mounted_resp = self.send('isSampleMounted;')
-        mounted = mounted_resp.params[0]
-        if mounted.lower() == 'yes':
-            return True
-        elif mounted.lower() == 'no':
-            return False
-        else:
-            msg = 'Unknown sample mount state \'{}\''.format(mounted)
-            raise RuntimeError(msg)
-
     def get_nearest_pos(self):
         pass
 
@@ -126,6 +114,14 @@ class Robot(SocketConnector):
         msg = 'setSpeed:#{};'.format(speed_pc)
         self.send(msg, wait_for='setSpeed:done;')
 
+    def get_gripper_state(self):
+        # TODO Docstring
+        pass
+
+    def is_gripper_closed(self):
+        # TODO Docstring
+        pass
+
     def is_powered(self):
         # TODO Docstring
         powered_resp = self.send('getPowerState;')
@@ -136,6 +132,18 @@ class Robot(SocketConnector):
             return False
         else:
             msg = 'Unknown power state \'{}\''.format(powered)
+            raise RuntimeError(msg)
+
+    def is_sample_mounted(self):
+        # TODO Docstring
+        mounted_resp = self.send('isSampleMounted;')
+        mounted = mounted_resp.params[0]
+        if mounted.lower() == 'yes':
+            return True
+        elif mounted.lower() == 'no':
+            return False
+        else:
+            msg = 'Unknown sample mount state \'{}\''.format(mounted)
             raise RuntimeError(msg)
 
     @staticmethod
