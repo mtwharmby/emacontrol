@@ -104,7 +104,7 @@ class Robot(SocketConnector):
     def is_sample_mounted(self):
         # TODO Docstring
         mounted = self.send('isSampleMounted;')
-        is_mounted = mounted.state[0]
+        is_mounted = mounted.params[0]
         if is_mounted.lower() == 'yes':
             return True
         elif is_mounted.lower() == 'no':
@@ -125,7 +125,7 @@ class Robot(SocketConnector):
     def is_powered(self):
         # TODO Docstring
         powered = self.send('getPowerState;')
-        is_ema_powered = powered.state[0]
+        is_ema_powered = powered.params[0]
         if is_ema_powered.lower() == 'on':
             return True
         elif is_ema_powered.lower() == 'off':
