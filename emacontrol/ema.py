@@ -52,6 +52,10 @@ class Robot(SocketConnector):
         Should received message be run through message_parser to check for
         errors.
         '''
+        # Make sure we have a ; on the end of the message:
+        if message[-1] != ';':
+            # TODO Log: Warn missing ;
+            message = message + ';'
         recvd_msg = self.__send__(message)
         if parse:
             output = Robot.parse_message(recvd_msg)

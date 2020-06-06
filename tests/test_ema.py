@@ -35,6 +35,12 @@ def test_send(send_mock):
     reply = ema.send('Command;', parse=False)
     assert reply == 'Command:done;'
 
+    # Send automatically adds a semi-colon to messages where the
+    # last character is not one
+    reply = ema.send('Command', parse=False)
+    send_mock.assert_called_with('Command;')
+    assert reply == 'Command:done;'
+
     # Fails should throw an error...
     send_mock.return_value = 'Command:fail;'
     with pytest.raises(RuntimeError, match=r'.*failed.*'):
