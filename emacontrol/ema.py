@@ -103,14 +103,14 @@ class Robot(SocketConnector):
 
     def is_sample_mounted(self):
         # TODO Docstring
-        mounted = self.send('isSampleMounted;')
-        is_mounted = mounted.params[0]
-        if is_mounted.lower() == 'yes':
+        mounted_resp = self.send('isSampleMounted;')
+        mounted = mounted_resp.params[0]
+        if mounted.lower() == 'yes':
             return True
-        elif is_mounted.lower() == 'no':
+        elif mounted.lower() == 'no':
             return False
         else:
-            msg = 'Unknown sample mount state \'{}\''.format(is_mounted)
+            msg = 'Unknown sample mount state \'{}\''.format(mounted)
             raise RuntimeError(msg)
 
     def get_nearest_pos(self):
@@ -124,14 +124,14 @@ class Robot(SocketConnector):
 
     def is_powered(self):
         # TODO Docstring
-        powered = self.send('getPowerState;')
-        is_ema_powered = powered.params[0]
-        if is_ema_powered.lower() == 'on':
+        powered_resp = self.send('getPowerState;')
+        powered = powered_resp.params[0]
+        if powered.lower() == 'on':
             return True
-        elif is_ema_powered.lower() == 'off':
+        elif powered.lower() == 'off':
             return False
         else:
-            msg = 'Unknown power state \'{}\''.format(is_ema_powered)
+            msg = 'Unknown power state \'{}\''.format(powered)
             raise RuntimeError(msg)
 
     @staticmethod
