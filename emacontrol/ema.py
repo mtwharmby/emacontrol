@@ -117,10 +117,14 @@ class Robot(SocketConnector):
         pass
 
     def get_speed(self):
-        pass
+        # TODO Docstring
+        speed_resp = self.send('getSpeed;')
+        return speed_resp.params[0]
 
     def set_speed(self, speed_pc):
-        pass
+        # TODO Docstring
+        msg = 'setSpeed:#{};'.format(speed_pc)
+        self.send(msg, wait_for='setSpeed:done;')
 
     def is_powered(self):
         # TODO Docstring

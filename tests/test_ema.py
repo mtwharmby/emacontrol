@@ -99,11 +99,22 @@ def test_get_nearest_pos():
 
 
 def test_get_speed():
-    raise NotImplementedError
+    with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
+        ema = Robot()
+
+        send_mock.return_value = 'getSpeed:#50.5;'
+        assert ema.get_speed() == 50.5
+        send_mock.assert_called_with('getSpeed;')
 
 
 def test_set_speed():
-    raise NotImplementedError
+    with patch('emacontrol.emaapi.Robot.send') as send_mock:
+        ema = Robot()
+
+        send_mock.return_value = 'setSpeed:done;'
+        ema.set_speed(75.6)
+        send_mock.assert_called_with('setSpeed:#75.6;',
+                                     wait_for='setSpeed:done;')
 
 
 def test_is_powered():
