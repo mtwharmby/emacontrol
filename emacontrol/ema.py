@@ -235,7 +235,7 @@ class Robot(SocketConnector):
 
                 params_string = re_response.group('params')
                 re_params_iter = re.finditer(
-                    (r'#(?P<name>[A-Za-z]+|\d+)(?:(?=(?P<nums>[-0-9\.]+)|_'
+                    (r'#(?P<name>[A-Za-z]+|[\d.]+)(?:(?=(?P<nums>[-0-9\.]+)|_'
                      + r'(?P<str>[A-Za-z]+))|.?)'),
                     params_string)
 
