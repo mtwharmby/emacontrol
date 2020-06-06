@@ -51,6 +51,13 @@ class Robot(SocketConnector):
         parse : boolean
         Should received message be run through message_parser to check for
         errors.
+
+        Returns
+        -------
+        output : Response
+        The reply from the robot reformatted into a Response named tuple
+        listing the command, the command status (state) and any parameters
+        returned.
         '''
         # Make sure we have a ; on the end of the message:
         if message[-1] != ';':
@@ -79,7 +86,16 @@ class Robot(SocketConnector):
         return output
 
     def get_sample_number(self):
-        # TODO Docstring
+        """
+        Returns the currently requested sample position from the robot. This is
+        the number from 0 to 300 and is determined from the stored xy sample
+        coordinates.
+
+        Returns
+        -------
+        sample_nr : int
+        Current sample position.
+        """
         coords = self.send('getSamPosOffset;')
         return Robot.xy_to_samplenr(Robot.parse_response(coords, ['X', 'Y']))
 
@@ -115,7 +131,16 @@ class Robot(SocketConnector):
                   wait_for='setSamPosOffset:done;')
 
     def get_nearest_position(self):
-        # TODO Docstring
+        """
+        For the current position of the gripper, returns the nearest position
+        known to the VAL3 code and the distance of the arm from that position.
+
+        Returns
+        -------
+        nearest : dict
+        A two member dictionary containing the nearest position and the
+        distance in mm.
+        """
         near_resp = self.send('getNearestPosition;')
         nearest = near_resp.params
         nearest['position'] = nearest['POS']
@@ -125,47 +150,145 @@ class Robot(SocketConnector):
         return nearest
 
     def get_speed(self):
-        # TODO Docstring
+        """
+        Returns the current speed at which the robot moves. This is a
+        percentage value (0-100 %) defined by VAL3. This speed is used as the
+        base speed for all motions.
+
+        Returns
+        -------
+        speed : float
+        The percentage speed the robot moves at.
+        """
         speed_resp = self.send('getSpeed;')
         return speed_resp.params[0]
 
     def set_speed(self, speed_pc):
-        if speed <= 0.0 or > 100:
-            raise RuntimeError('Speed should be set between 0 and 100 %')
+        """
+        Change the speed the robot moves at. The supplied speed must be more
+        than 0 and less than or equal to 100%
+
+        Parameters
+        ----------
+        speed_pc : float
+        The percentage speed to set the robot to move at.
+
+        Raises
+        ------
+        RuntimeError
+        If the speed is outside of the range 0 to 100%.
+        """
+        if speed_pc <= 0.0 or speed_pc > 100:
+            raise RuntimeError('Invalid speed. Must be between 0 and 100%')
         msg = 'setSpeed:#{};'.format(speed_pc)
         self.send(msg, wait_for='setSpeed:done;')
 
     def get_gripper_state(self):
-        # TODO Docstring
+        """
+        Return the current state of the gripper according to VAL3.
+
+        Returns
+        -------
+        grip_state : str
+        The string state of the gripper (should be 'closed' or 'open').
+        """
         grip_resp = self.send('getGripperState;')
         return grip_resp.state  # FIXME This is non-standard
 
     def is_gripper_closed(self):
-        # TODO Docstring
+        """
+        Get the state of the flag for whether the gripper is closed (True) or
+        open (False).
+
+        Returns
+        -------
+        grip_state : bool
+        Return True if the robot gripper is closed.
+
+        Raises
+        ------
+        RuntimeError
+        If the sample mounted state is returned as neither closed or open.
+        """
         grip_state = self.get_gripper_state()
-        return Robot.__state_mapper(grip_state, 'gripper',
+        return Robot.__state_mapper('gripper', grip_state,
                                     {'closed': True, 'open': False})
 
     def is_powered(self):
-        # TODO Docstring
+        """
+        Determine whether the robot is power supply is on (True) or off
+        (False).
+
+        Returns
+        -------
+        powered : bool
+        Return True if robot is powered on.
+
+        Raises
+        ------
+        RuntimeError
+        If the sample mounted state is returned as neither on or off.
+        """
         powered_resp = self.send('getPowerState;')
-        return Robot.__state_mapper(powered_resp.params[0], 'power',
+        return Robot.__state_mapper('power', powered_resp.params[0],
                                     {'on': True, 'off': False})
 
     def is_sample_mounted(self):
-        # TODO Docstring
+        """
+        Determine the state of the flag for a sample being mounted on the
+        spinner.
+        N.B. This does not mean a sample is mounted, it is simply reporting a
+             flag which can be set.
+
+        Returns
+        -------
+        mounted : bool
+        Return True if a sample is mounted on the spinner.
+
+        Raises
+        ------
+        RuntimeError
+        If the sample mounted state is returned as neither yes or no.
+        """
         mounted_resp = self.send('isSampleMounted;')
-        return Robot.__state_mapper(mounted_resp.params[0], 'sample mount',
+        return Robot.__state_mapper('sample mount', mounted_resp.params[0],
                                     {'yes': True, 'no': False})
 
     @staticmethod
-    def __state_mapper(state, state_name, state_dict):
-        # TODO Docstring
+    def __state_mapper(param_name, state, state_map):
+        """
+        Helper function to simplify is_<param_name> methods. Given a dictionary
+        mapping states to values, return the value of the given parameter. If
+        the given state is not in the mapping, raise an error.
+
+        Parameters
+        ----------
+        param_name : str
+        Name of the parameter with state to be mapped
+
+        state : str
+        Usually a string name of the state (e.g. open, closed) which the robot
+        reports the parameter to be in.
+
+        state_map : dict
+        Mapping of states to their new values which should be returned:
+        e.g. closed -> True.
+
+        Returns
+        -------
+        value : object
+        The new value which the state is mapped to.
+
+        Raises
+        ------
+        RuntimeError
+        If the supplied state is not in the state_map.
+        """
         state_low = state.lower()
         try:
-            return state_dict[state_low]
+            return state_map[state_low]
         except KeyError:
-            msg = 'Unknown {} state \'{}\''.format(state_name, state)
+            msg = 'Unknown {} state \'{}\''.format(param_name, state)
             raise RuntimeError(msg)
 
     @staticmethod
