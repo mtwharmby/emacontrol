@@ -113,25 +113,14 @@ class Robot(SocketConnector):
             msg = 'Unknown sample mount state \'{}\''.format(is_mounted)
             raise RuntimeError(msg)
 
-    def get_spin_position_offset(self):
-        """
-        Reads and returns the offset (trsf.{x,y,z} in VAL3) which has been
-        applied to the SpinHomePosition to set the current currentSpinPosJ of
-        the robot.
+    def get_nearest_pos(self):
+        pass
 
-        Returns
-        -------
-        coords : tuple
-        x, y, z offset in mm.
-        """
-        spin_offset = self.send('getSpinPosOffset;')
-        return Robot._parse_state(spin_offset, ['X', 'Y', 'Z'])
+    def get_speed(self):
+        pass
 
-    def set_spin_position_offset(self, spin_x, spin_y, spin_z, verbose=False):
-        """
-        Sends new x, y and z offsets to be applied to the SpinHomePosition of
-        the robot to yield the new currentSpinPosJ. These values should be
-        calculated from the goniometer head encoder positions.
+    def set_speed(self, speed_pc):
+        pass
 
     def is_powered(self):
         # TODO Docstring
