@@ -171,7 +171,6 @@ def test_xy_to_samplenr_float():
 
 # Method supports send
 def test_parse_message():
-    # TODO Add test of no match
     res = Robot.parse_message('getSamPosOffset:#X0    #Y0    ;')
     assert res == Response('getSamPosOffset', 'ok', {'X': 0, 'Y': 0})
 
@@ -194,9 +193,10 @@ def test_parse_message():
 
     res = Robot.parse_message('getSpeed:#100;')
     assert res == Response('getSpeed', 'ok', {0: 100})
-    # FIXME This breaks the regex
-    # res = Robot.parse_message('getSpeed:#50.5;')
-    # assert res == Response('getSpeed', 'ok', {0: 50.5})
+    res = Robot.parse_message('getSpeed:#50.5;')
+    assert res == Response('getSpeed', 'ok', {0: 50.5})
+    # TODO If change message to getSpeed:#speed50.5;, remove |[\d.]+ from name
+    #      regex
 
     res = Robot.parse_message('isSampleMounted:#Yes;')
     assert res == Response('isSampleMounted', 'ok', {0: 'Yes'})
@@ -224,7 +224,14 @@ def test_parse_message():
     res = Robot.parse_message('getDiffOrigin:#X2#Y6#Z4;')
     assert res == Response('getDiffOrigin', 'ok', {'X': 2, 'Y': 6, 'Z': 4})
 
-    # TODO Fix regex for this...
-    # res = Robot.parse_message(":fail_'Unrecognised Command!';")
-    # assert res == Response('', 'fail', {'msg': 'Unrecognised Command!'})
+    res = Robot.parse_message(":fail_'Unrecognised Command!';")
+    assert res == Response('', 'fail', {'msg': 'Unrecognised Command!'})
+
+
+def test_parse_message_error():
+    # Messages must follow format:
+    # <cmd>:{<status>[_<message>]|#<param_name>[_]<param_value>[#<param_name>[_]<param_value>...]};
+    with pytest.raises(RuntimeError, match=r"Unexpected message format:.*"):
+        Robot.parse_message('getDiffOrigin#X2#Y6#Z4;')
+
 

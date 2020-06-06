@@ -209,8 +209,8 @@ class Robot(SocketConnector):
         # Highly specific regex as we expect a well defined reponse from VAL3.
         # Anything else implies we have a problem.
         re_response = re.match(
-            (r"(?P<cmd>[A-Za-z]+):(?:(?P<state>[A-Za-z]+)"
-             + r"(?:_(?P<msg>[A-Za-z']+))?|(?P<params>#.*));"), message)
+            (r"(?P<cmd>[A-Za-z]*):(?:(?P<state>[A-Za-z]+)"
+             + r"(?:_(?P<msg>[A-Za-z'\s!]+))?|(?P<params>#.*));"), message)
 
         if re_response:
             command = re_response.group('cmd')
