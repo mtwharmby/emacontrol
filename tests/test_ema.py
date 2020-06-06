@@ -94,8 +94,14 @@ def test_set_speed():
                                      wait_for='setSpeed:done;')
 
 
-def test_get_nearest_pos():
-    raise NotImplementedError
+def test_get_nearest_position():
+    with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
+        ema = Robot()
+
+        send_mock.return_value = ('getCurrentPosition:#DIST99.993'
+                                  + '#POS_currentSamPos;')
+        assert ema.get_nearest_position() == {'position': 'currentSamPos',
+                                              'distance': 99.993}
 
 
 def test_get_gripper_state():

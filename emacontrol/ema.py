@@ -101,8 +101,15 @@ class Robot(SocketConnector):
         self.send('setSamPosOffset:#X{0:d}#Y{1:d};'.format(x_coord, y_coord),
                   wait_for='setSamPosOffset:done;')
 
-    def get_nearest_pos(self):
-        pass
+    def get_nearest_position(self):
+        # TODO Docstring
+        near_resp = self.send('getNearestPosition;')
+        nearest = near_resp.params
+        nearest['position'] = nearest['POS']
+        nearest['distance'] = nearest['DIST']
+        del nearest['POS']
+        del nearest['DIST']
+        return nearest
 
     def get_speed(self):
         # TODO Docstring
