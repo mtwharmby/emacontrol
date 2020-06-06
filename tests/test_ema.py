@@ -110,6 +110,16 @@ def test_set_speed():
                                      wait_for='setSpeed:done;')
 
 
+def test_set_speed_bad():
+    with pytest.raises(RuntimeError, match=r"Invalid speed.*"):
+        ema = Robot()
+        ema.set_speed(-10)
+
+    with pytest.raises(RuntimeError, match=r"Invalid speed.*"):
+        ema = Robot()
+        ema.set_speed(100.1)
+
+
 def test_get_nearest_position():
     with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
         ema = Robot()
