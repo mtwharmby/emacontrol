@@ -116,34 +116,35 @@ class Robot(SocketConnector):
 
     def get_gripper_state(self):
         # TODO Docstring
-        pass
+        grip_resp = self.send('getGripperState;')
+        return grip_resp.state  # FIXME This is non-standard
 
     def is_gripper_closed(self):
         # TODO Docstring
-        pass
+        grip_state = self.get_gripper_state()
+        return Robot.__state_mapper(grip_state, 'gripper',
+                                    {'closed': True, 'open': False})
 
     def is_powered(self):
         # TODO Docstring
         powered_resp = self.send('getPowerState;')
-        powered = powered_resp.params[0]
-        if powered.lower() == 'on':
-            return True
-        elif powered.lower() == 'off':
-            return False
-        else:
-            msg = 'Unknown power state \'{}\''.format(powered)
-            raise RuntimeError(msg)
+        return Robot.__state_mapper(powered_resp.params[0], 'power',
+                                    {'on': True, 'off': False})
 
     def is_sample_mounted(self):
         # TODO Docstring
         mounted_resp = self.send('isSampleMounted;')
-        mounted = mounted_resp.params[0]
-        if mounted.lower() == 'yes':
-            return True
-        elif mounted.lower() == 'no':
-            return False
-        else:
-            msg = 'Unknown sample mount state \'{}\''.format(mounted)
+        return Robot.__state_mapper(mounted_resp.params[0], 'sample mount',
+                                    {'yes': True, 'no': False})
+
+    @staticmethod
+    def __state_mapper(state, state_name, state_dict):
+        # TODO Docstring
+        state_low = state.lower()
+        try:
+            return state_dict[state_low]
+        except KeyError:
+            msg = 'Unknown {} state \'{}\''.format(state_name, state)
             raise RuntimeError(msg)
 
     @staticmethod

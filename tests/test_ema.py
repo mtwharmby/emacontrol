@@ -98,6 +98,41 @@ def test_get_nearest_pos():
     raise NotImplementedError
 
 
+def test_get_gripper_state():
+    with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
+        ema = Robot()
+
+        # FIXME Bad message structure!
+        send_mock.return_value = 'getGripperState:closed;'
+        assert ema.get_gripper_state() == 'closed'
+        send_mock.assert_called_with('getGripperState;')
+
+        send_mock.return_value = 'getGripperState:open;'
+        assert ema.get_gripper_state() == 'open'
+
+
+def test_is_gripper_closed():
+    with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
+        ema = Robot()
+
+        # FIXME Bad message structure!
+        send_mock.return_value = 'getGripperState:closed;'
+        assert ema.is_gripper_closed() is True
+        send_mock.assert_called_with('getGripperState;')
+
+        send_mock.return_value = 'getGripperState:open;'
+        assert ema.is_gripper_closed() is False
+
+
+def test_is_gripper_closed_bad():
+    with pytest.raises(RuntimeError, match=r"Unknown gripper state.*"):
+        with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
+            ema = Robot()
+
+            send_mock.return_value = 'getGripperState:squirrel;'
+            ema.is_gripper_closed()
+
+
 def test_is_powered():
     with patch('emacontrol.emaapi.Robot.__send__') as send_mock:
         ema = Robot()
