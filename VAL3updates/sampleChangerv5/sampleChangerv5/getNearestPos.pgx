@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Programs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.staubli.com/robotics/VAL3/Program/2">
+  <Program name="getNearestPos">
+    <Parameters xmlns="http://www.staubli.com/robotics/VAL3/Param/1">
+      <Parameter name="sio_ID" type="num" xsi:type="element" />
+    </Parameters>
+    <Locals>
+      <Local name="currentPosPnt" type="pointRx" xsi:type="array" size="1" />
+      <Local name="jDist" type="num" xsi:type="array" size="1" />
+      <Local name="jKey" type="string" xsi:type="array" size="1" />
+      <Local name="nearestDistance" type="num" xsi:type="array" size="1" />
+      <Local name="nearestName" type="string" xsi:type="array" size="1" />
+      <Local name="reply" type="string" xsi:type="array" size="1" />
+    </Locals>
+    <Code><![CDATA[begin
+  //**************************************************
+  // Identifies the nearest position of those in knownPositions
+  // to the current position of the robot.
+  //
+  // This method is for recovery on, e.g. interlock breaking, 
+  // to allow a reset to stable working.
+  //**************************************************
+  currentPosPnt = jointToPoint(flange, world, herej())
+  
+  // nearestJ was also going to be returned, but the plan changed.
+  // It is retained in case it is sometime useful.
+  //nearestJ = origin
+  nearestName = "unknown"
+  nearestDistance = 1000000
+ 
+  // Loop through all the positions in knownPositions, checking which has the smallest distance
+  jKey = first(knownPositions)
+  while jKey != ""
+    jDist = distance(currentPosPnt, jointToPoint(flange,world, knownPositions[jKey]))
+    if jDist < nearestDistance
+      nearestName = jKey
+      //nearestJ = knownPositions[jKey]
+      nearestDistance = jDist
+    endIf
+    jKey = next(knownPositions[jKey])
+  endWhile
+  
+  // Report the closest distance in the form getCurrentPosition:#DIST0.123#POS_gatePosition;
+  reply = "getCurrentPosition:#DIST" + toString(".2", nearestDistance) + "#POS_" + nearestName
+  taskCreate "sendStatus",10,sendStatus(reply, sio_ID)
+end]]></Code>
+  </Program>
+</Programs>

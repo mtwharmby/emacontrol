@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.staubli.com/robotics/VAL3/Data/2">
+  <Datas>
+    <Data name="moveIsStopped" access="private" xsi:type="array" type="bool" size="1" />
+    <Data name="switchGripper" access="private" xsi:type="array" type="dio" size="1">
+      <Value key="0" link="valve1" />
+    </Data>
+    <Data name="binPosition" access="private" xsi:type="array" type="jointRx" size="1">
+      <Value key="0" j1="59.154914" j2="15.287075" j3="144.068937" j4="0.00349" j5="20.640131" j6="239.148927" />
+    </Data>
+    <Data name="currentSamPosJ" access="private" xsi:type="array" type="jointRx" size="1">
+      <Value key="0" j1="64.5166" j2="21.7725" j3="135.395" j4="0.005" j5="22.8226" j6="244.506" />
+    </Data>
+    <Data name="currentSpinPosJ" access="private" xsi:type="array" type="jointRx" size="1" />
+    <Data name="gatePosition" access="private" xsi:type="array" type="jointRx" size="1">
+      <Value key="0" j1="53.332436" j2="31.008098" j3="108.023775" j4="-0.035914" j5="40.963114" j6="323.353672" />
+    </Data>
+    <Data name="homePosition" access="private" xsi:type="array" type="jointRx" size="1">
+      <Value key="0" j1="64.5166" j2="21.7725" j3="135.395" j4="0.005" j5="22.8226" j6="244.506" />
+    </Data>
+    <Data name="knownPositions" access="private" xsi:type="collection" type="jointRx">
+      <Value key="currentSamPos" />
+      <Value key="currentSpinPos" />
+      <Value key="gatePosition" />
+      <Value key="homePosition" />
+      <Value key="parkingPosition" />
+      <Value key="spinnerHomePos" />
+      <Value key="zeroPosition" />
+      <Value key="binPosition" />
+    </Data>
+    <Data name="parkingPosition" access="private" xsi:type="array" type="jointRx" size="1">
+      <Value key="0" j1="20.774519" j2="86.925335" j3="58.285959" j4="-72.455135" j5="101.349332" j6="295.989419" />
+    </Data>
+    <Data name="spinnerHomePos" access="private" xsi:type="array" type="jointRx" size="1">
+      <Value key="0" j1="24.038951" j2="102.353577" j3="38.089715" j4="-71.031763" j5="105.005317" j6="322.961782" />
+    </Data>
+    <Data name="zeroPosition" access="private" xsi:type="array" type="jointRx" size="1">
+      <Value key="0" j1="88.745927" j2="-26.51301" j3="117.695598" j4="-0.539561" j5="89.308877" j6="269.442332" />
+    </Data>
+    <Data name="mFastMov" access="private" xsi:type="array" type="mdesc" size="1">
+      <Value key="0" blend="off" />
+    </Data>
+    <Data name="mNomSpeed" access="private" xsi:type="array" type="mdesc" size="1">
+      <Value key="0" accel="2.25" vel="15" decel="2.25" />
+    </Data>
+    <Data name="numSamOffs" access="private" xsi:type="array" type="num" size="2" />
+    <Data name="numSpinOffs" access="private" xsi:type="array" type="num" size="6" />
+    <Data name="sioASCII" access="private" xsi:type="array" type="sio" size="2">
+      <Value key="0" link="Socket\tan" />
+      <Value key="1" link="Socket\tan" />
+    </Data>
+    <Data name="mounted" access="private" xsi:type="array" type="bool" size="1" />
+    <Data name="diffRelPosition" access="private" xsi:type="array" type="string" size="1" />
+    <Data name="diffOriPosition" access="private" xsi:type="array" type="string" size="1" />
+  </Datas>
+</Database>

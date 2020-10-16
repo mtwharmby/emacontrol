@@ -1,0 +1,95 @@
+getSamPosOffset; - 
+'getSamPosOffset:#X0    #Y0    ;'
+'getSamPosOffset:#X1    #Y2    ;'
+
+'setSamPosOffset:#X1#Y2; - 
+'setSamPos:done;'
+
+# Not real output {
+powerOff; - 
+'powerOff:done';
+"powerOff:fail_'RobotPowerCannotBeSwitched';"
+
+powerOn; - 
+'powerOn:done';
+"powerOn:fail_'RobotPowerCannotBeSwitched';"
+}
+
+getSpeed; - 
+'getSpeed:#100;'
+'getSpeed:#50;'
+
+setSpeed#50; - 
+'setSpeed:done;'
+
+getPowerState; - 
+'getPowerState:#Off;'
+
+sampleMounted; -
+'sampleMounted:done;'
+
+isSampleMounted;'
+'isSampleMounted:#Yes;'
+
+sampleUnmounted; -
+'sampleUnmounted:done;'
+
+isSampleMounted; -
+'isSampleMounted:#No;'
+
+# Not real output {
+getGripperState; - 
+'getGripperState:open;'
+'getGripperState:closed;'
+
+moveSpinPos; - 
+'moveSpinPos:done;'
+}
+
+getSpinPosition; - 
+'getSpinPosition:#X984.71#Y397.23#Z-647.12#RX90#RY0#RZ90;'
+
+getSpinPosOffset; - 
+'getSpinPosOffset:#X0    #Y0    #Z0    #RX0  #RY0  #RZ0  ;'
+'getSpinPosOffset:#X2    #Y4    #Z6    #RX0  #RY0  #RZ0  ;'
+'getSpinPosOffset:#X2.3  #Y4.2  #Z6.1  #RX0  #RY0  #RZ0  ;'
+
+setSpinPosOffset:#X2#Y4#Z6; , setSpinPosOffset:#X2.3#Y4.2#Z6.1; - 
+'setSpinPosOffset:done;'
+
+getSpinHomePosition; - 
+'getSpinHomePosition:#X982.41#Y393.03#Z-653.22#RX90#RY0#RZ90;'
+
+getCurrentPosition - 
+'getCurrentPosition:#X-40.1 #Y409.82#Z468.24#RX179#RY1#RZ1;'
+
+getNearestPosition; -
+'getCurrentPosition:#DIST99.993#POS_currentSamPos;'
+
+getDiffOrigin; - 
+'getDiffOrigin:#X2#Y6#Z4;'
+
+# Not real output! {
+setDiffOrigin:#X2#Y6#Z4; - 
+setDiffOrigin:done
+}
+
+getDiffRel:
+'getDiffRel:#X2#Y6#Z4;'
+
+setDiffRel:#X2#Y6#Z4 - 
+'setDiffRel:done'
+
+
+
+squirrel; -
+":fail_'Unrecognised Command!';"
+
+squirrel -
+":fail_'No message end';"
+
+setDiffOrigin
+'setDiffOrigin:done'
+
+# getCalibInfo; -
+# 'getCalibInfo:#DIFFABS1,2,3#DIFFREL4,5,6;'
