@@ -1,3 +1,17 @@
+EMA Control Updates
+
+1) Use robot state rather than config file to hold and read diffr positions
+Sample mounted
+Powerstate
+Move functions to __init__
+Logging
+Improve tests (__send__)
+getcurrentpos
+reset
+
+
+
+
 # Align diffractometer to beam and align robot to spinner
 # Get spinner coords in diffractometer frame and calculate in xyz frame (spin_dxyz)
 # Get gripper coordinates in xyz frame (grip_xyz)
