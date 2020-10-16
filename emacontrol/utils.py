@@ -59,4 +59,5 @@ def num_to_int(num):
                          .format(num, type(num)))
 
 
-CoordsXYZ = namedtuple('CoordsXYZ', ['x', 'y', 'z'])
+TrVect = namedtuple('TrVect', ['x', 'y', 'z'])
+TrsfMx = namedtuple('TrsfMx', ['x', 'y', 'z', 'rx', 'ry', 'rz'])
