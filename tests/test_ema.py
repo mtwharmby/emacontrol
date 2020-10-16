@@ -314,3 +314,5 @@ def test_parse_message_error():
         Robot.parse_message('getDiffOrigin#X2#Y6#Z4;')
 
 
+# def test_parse_response():
+#     raise NotImplementedError
