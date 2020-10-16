@@ -124,7 +124,7 @@ def calibrate_spinner(samx, samy, samz, om, diffh, diffv, rotate_sense=1,
     Calibrate the positions of the spinner and the diffractometer relative to
     one-another.
 
-    The given diffractometer coordinates used to find the vector between
+    The given diffractometer coordinates are used to find the vector between
     diffractometer origin and the robot SpinnerHomePosition. This value is
     stored along with the absolute positions (in the robot coordinate system)
     of the diffractometer origin and the robot SpinnerHomePosition. The
