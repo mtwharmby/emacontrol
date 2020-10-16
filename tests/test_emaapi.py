@@ -49,6 +49,7 @@ def test_mount_sample(sample_num_mock, send_mock):
                   call('moveGate;', wait_for='moveGate:done;'),
                   call('moveSpinPos;', wait_for='moveSpinPos:done;'),
                   call('sampleRelease;', wait_for='sampleRelease:done;'),
+                #   call('sampleMounted;', wait_for='sampleMounted:done;'),
                   call('moveParkPos;', wait_for='moveParkPos:done;')
                   ]
     send_mock.assert_has_calls(send_calls)
@@ -67,6 +68,7 @@ def test_unmount_sample(send_mock):
     unmount_sample()
     send_calls = [call('moveSpinPos;', wait_for='moveSpinPos:done;'),
                   call('samplePick;', wait_for='samplePick:done;'),
+                #   call('sampleUnmounted;', wait_for='sampleUnmounted:done;')
                   call('moveGate;', wait_for='moveGate:done;'),
                   call('moveSamPos;', wait_for='moveSamPos:done;'),
                   call('sampleRelease;', wait_for='sampleRelease:done;')
