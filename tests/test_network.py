@@ -1,7 +1,65 @@
+import socket
 import pytest
 from mock import call, patch
 
 from emacontrol.network import SocketConnector
+
+
+@pytest.fixture
+def mock_sock(mocker):
+    sock = mocker.MagicMock()
+    sock().fileno.return_value = 2048
+    sock().send.side_effect = lambda arg: len(arg)
+    return sock
+
+
+@pytest.fixture
+def socket_patcher(monkeypatch, mock_sock):
+    monkeypatch.setattr(socket, 'socket', mock_sock)
+
+
+def test_SocketConnector_init():
+    sock_conn = SocketConnector('emahost.desy.de', 5432)
+
+    # TODO Refactor so we don't have to call _read_config
+    # TODO Do we need to store the config file?
+    assert sock_conn.peer == ('emahost.desy.de', 5432)
+    assert sock_conn.config_file is None
+    assert sock_conn.socket_timeout == 120
+    assert sock_conn.sock is None
+
+
+# TODO Update test for send
+#      Convert __send__ to a socket context manager.
+#      Remove _connect, _disconnect, is_connected
+#      Move message parsing routines to network
+
+
+@pytest.mark.parametrize('msg, expected_msg',
+                         [['ACommandWithParameters:#P1#P2;',
+                          'ACommandWithParameters:#P1#P2;'.encode()]])
+def test_sendonly(mock_sock, msg, expected_msg):
+    # TODO Test chunking
+    sock_conn = SocketConnector(host='127.0.0.3', port=10006)
+
+    sock_conn.__sendonly__(mock_sock(), msg)
+    mock_sock().send.assert_called_with(expected_msg)
+
+
+@pytest.mark.parametrize('reply', [
+    'ACommandWithParameters:#P1#P2;'
+])
+def test_recvonly(mock_sock, reply):
+    # TODO Test chunking
+    mock_sock().recv.return_value = reply.encode()
+
+    sock_conn = SocketConnector(host='127.0.0.3', port=10006)
+    msg = sock_conn.__recvonly__(mock_sock())
+
+    assert msg == reply
+    mock_sock().recv.assert_called_with(1024)
+
+#################################################################
 
 
 def test_read_config():

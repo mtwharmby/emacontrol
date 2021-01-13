@@ -87,6 +87,38 @@ class SocketConnector(object):
             return False
         return self.sock.fileno() is not -1
 
+    def __sendonly__(self, sock, message):
+        msg_bytes = str(message).encode()
+        bytes_sent = 0
+        send_start = time.time()
+        while bytes_sent < len(msg_bytes):
+            try:
+                bytes_sent = bytes_sent + sock.send(msg_bytes)
+                if (time.time() - send_start) > self.socket_timeout:
+                    # TODO Log: 'Failed to send message within timeout
+                    # ({})'.format(self.socket_timeout)
+                    msg = 'Message not sent before timeout'
+                    raise RuntimeError(msg)
+                # TODO Log: 'Sent message "{}" on socket
+            except socket.error:
+                gevent.sleep(0.1)
+                # self._connect()
+
+    def __recvonly__(self, sock):
+        msg_chunks = []
+        recv_start = time.time()
+        while True:
+            chunk = sock.recv(1024)
+            chunk = chunk.strip(b'\x00').decode('utf-8')
+            msg_chunks.append(chunk)
+            if chunk.count(';') == 1:
+                break
+            if (time.time() - recv_start) > self.socket_timeout:
+                msg = 'No message delimiter received before timeout'
+                raise RuntimeError(msg)
+
+        return "".join(msg_chunks)
+
     def __send__(self, message):
         """
         Send is a protected method which separates the handling of the socket
@@ -98,21 +130,7 @@ class SocketConnector(object):
         try:
             # with-block ensures no other send attempts happen simultaneously
             with _send_recv_semaphore:
-                msg_bytes = str(message).encode()
-                bytes_sent = 0
-                send_start = time.time()
-                while bytes_sent < len(msg_bytes):
-                    try:
-                        bytes_sent = bytes_sent + self.sock.send(msg_bytes)
-                        if (time.time() - send_start) > self.socket_timeout:
-                            # TODO Log: 'Failed to send message within timeout
-                            # ({})'.format(self.socket_timeout)
-                            msg = 'Message not sent before timeout'
-                            raise RuntimeError(msg)
-                        # TODO Log: 'Sent message "{}" on socket
-                    except socket.error:
-                        gevent.sleep(0.1)
-                        self._connect()
+                self.__sendonly__(self.sock, message)
 
                 # This is commented out as, although it is the 'correct' thing
                 # to do, it seems to have a detrimental effect on the stability
@@ -122,20 +140,10 @@ class SocketConnector(object):
                 # self.sock.shutdown(socket.SHUT_WR)
 
                 # Now we wait for a reply
-                msg_chunks = []
-                recv_start = time.time()
-                while True:
-                    chunk = self.sock.recv(1024)
-                    chunk = chunk.strip(b'\x00').decode('utf-8')
-                    msg_chunks.append(chunk)
-                    if chunk.count(';') == 1:
-                        break
-                    if (time.time() - recv_start) > self.socket_timeout:
-                        msg = 'No message delimiter received before timeout'
-                        raise RuntimeError(msg)
+                full_msg = self.__recvonly__(self.sock)
         finally:
             # We're done, close the socket
             self._disconnect()
 
         # Put the message back together and check it's what we expected
-        return "".join(msg_chunks)
+        return full_msg
