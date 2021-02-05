@@ -1,6 +1,5 @@
 import socket
 import pytest
-from mock import call, patch
 
 from emacontrol.network import SocketConnector
 
@@ -14,25 +13,22 @@ def mock_sock(mocker):
 
 
 @pytest.fixture
-def socket_patcher(monkeypatch, mock_sock):
-    monkeypatch.setattr(socket, 'socket', mock_sock)
+def mock_sock_ctxman(mocker, mock_sock):
+    ctxman = mocker.MagicMock()
+    ctxman().__enter__.return_value = mock_sock()
+    return ctxman
+
+
+@pytest.fixture
+def socket_patcher(monkeypatch, mock_sock_ctxman):
+    monkeypatch.setattr(socket, 'socket', mock_sock_ctxman)
 
 
 def test_SocketConnector_init():
     sock_conn = SocketConnector('emahost.desy.de', 5432)
 
-    # TODO Refactor so we don't have to call _read_config
-    # TODO Do we need to store the config file?
     assert sock_conn.peer == ('emahost.desy.de', 5432)
-    assert sock_conn.config_file is None
     assert sock_conn.socket_timeout == 120
-    assert sock_conn.sock is None
-
-
-# TODO Update test for send
-#      Convert __send__ to a socket context manager.
-#      Remove _connect, _disconnect, is_connected
-#      Move message parsing routines to network
 
 
 @pytest.mark.parametrize('msg, expected_msg',
@@ -51,6 +47,7 @@ def test_sendonly(mock_sock, msg, expected_msg):
 ])
 def test_recvonly(mock_sock, reply):
     # TODO Test chunking
+    # TODO Test null stripping
     mock_sock().recv.return_value = reply.encode()
 
     sock_conn = SocketConnector(host='127.0.0.3', port=10006)
@@ -59,102 +56,38 @@ def test_recvonly(mock_sock, reply):
     assert msg == reply
     mock_sock().recv.assert_called_with(1024)
 
-#################################################################
 
-
-def test_read_config():
-    sock_conn = SocketConnector(None, None, config_file='./example_config.ini')
-    sock_conn._read_config()
-    assert sock_conn.peer == ('127.0.0.2', 10005)
-
-
-@patch('socket.socket')
-def test_is_connected(sock_mock):
-    sock_conn = SocketConnector(host='127.0.0.3', port=10006)
-
-    assert sock_conn.is_connected() is False
-
-    # A normal connection
-    sock_conn._connect()
-    # fileno = 11 happens when a socket connects (fileno != -1)
-    sock_mock().fileno.return_value = 11
-    assert sock_conn.is_connected() is True
-
-    # Fake a broken connection (fileno goes to -1)
-    sock_mock().fileno.return_value = -1
-    assert sock_conn.is_connected() is False
-
-
-@patch('socket.socket')
-def test__connect__disconnect(sock_mock):
-    sock_conn = SocketConnector(host='127.0.0.3', port=10006)
-
-    # A normal connection
-    sock_conn._connect()
-    # fileno = 11 happens when a socket connects (fileno != -1)
-    sock_mock().fileno.return_value = 11
-    assert sock_conn.is_connected() is True
-
-    sock_conn._disconnect()
-    assert sock_conn.is_connected() is False
-    # we don't set the fileno here as disconnect should set sock = None
-
-
-@patch('socket.socket')
-def test__send__FullMessages(sock_mock):
-    # The test assume that the socket is always correctly connected when
-    # fileno is queried
-    sock_mock().fileno.return_value = 11
-
-    message = 'ACommandWithParameters:#P1#P2;'
-    msg_reply = 'ACommandWithParameters:done;'
-    sock_mock().send.return_value = len(message)
-    sock_mock().recv.return_value = msg_reply.encode()
+@pytest.mark.parametrize(
+    'message, reply',
+    [('ACommandWithParameters:#P1#P2;', 'ACommandWithParameters:done;'),
+     ]
+)
+def test__send__(socket_patcher, mock_sock, mock_sock_ctxman, message, reply):
+    mock_sock().recv.return_value = reply.encode()
 
     sock_conn = SocketConnector(host='127.0.0.3', port=10006)
-    reply = sock_conn.__send__(message)
+    answer = sock_conn.__send__(message)
 
-    assert reply == msg_reply
-    sock_calls = [call.connect(('127.0.0.3', 10006)),
-                  call.send(message.encode()),
-                  # call.shutdown(socket.SHUT_WR),
-                  call.recv(1024),
-                  call.fileno(),  # This from is_connected()
-                  call.close()]
-    sock_mock().assert_has_calls(sock_calls)
+    mock_sock_ctxman.assert_called_with(socket.AF_INET, socket.SOCK_STREAM)
+    mock_sock().connect.assert_called_with(
+        ('127.0.0.3', 10006)
+    )
+    mock_sock().send.assert_called_with(message.encode())
+    assert answer == reply
 
 
-@patch('socket.socket')
-def test__send__PartialMessages(sock_mock):
-    # The test assume that the socket is always correctly connected when
-    # fileno is queried
-    sock_mock().fileno.return_value = 11
-    message = 'ACommandWithParameters:#P1#P2;'
-    msg_reply = 'ACommandWithParameters:done;'
-
-    # Same again, but now the messages are sent and received in pieces
-    sock_mock().send.side_effect = [5, 10, 7, 8]
-    sock_mock().recv.side_effect = [b'ACommandWithP',
-                                    b'arameters:',
-                                    b'done;']
-
-    sock_conn = SocketConnector(host='127.0.0.3', port=10006)
-    reply = sock_conn.__send__(message)
-
-    assert reply == msg_reply
-
-
-@patch('socket.socket')
-def test__send__NoDelimMessage(sock_mock):
-    # The test assume that the socket is always correctly connected when
-    # fileno is queried
-    sock_mock().fileno.return_value = 11
-    message = 'ACommandWithParameters:#P1#P2;'
-    msg_reply = 'ACommandWithParameters:done'  # N.B. Removed delimiter
-    sock_mock().send.return_value = len(message)
-    sock_mock().recv.return_value = msg_reply.encode()
-
+@pytest.mark.parametrize(
+    'message, reply',
+    [('UndelimitedOutboundMessage', 'WillNotBeReceived;'),
+     ('DelimitedOutboundMessage;', 'UndelimitedReply')]
+)
+def test__send__delimiter_error(socket_patcher, mock_sock, mock_sock_ctxman,
+                                message, reply):
     sock_conn = SocketConnector(host='127.0.0.3', port=10006,
                                 socket_timeout=0.5)
-    with pytest.raises(RuntimeError, match=r".*delimiter.*"):
+    assert sock_conn.socket_timeout == 0.5
+
+    with pytest.raises(RuntimeError) as exc:
         sock_conn.__send__(message)
+
+        assert 'No message delimiter' in str(exc)
