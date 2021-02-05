@@ -61,3 +61,4 @@ def num_to_int(num):
 
 TrVect = namedtuple('TrVect', ['x', 'y', 'z'])
 TrsfMx = namedtuple('TrsfMx', ['x', 'y', 'z', 'rx', 'ry', 'rz'])
+CoordsXYZ = namedtuple('CoordsXYZ', ['x', 'y', 'z'])

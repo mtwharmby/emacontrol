@@ -1,28 +1,14 @@
-import os
 import pytest
-import sys
 
 from mock import patch
 
 from emacontrol.ema import Robot, Response
 
-pathlib_path = False  # As this doesn't work with python < 3.6
-if sys.version_info[0] >= 3:
-    if sys.version_info[1] > 5:
-        from pathlib import Path
-        pathlib_path = True
-
 
 def test_init():
     ema = Robot()
     assert ema.sample_index == 1
-    assert ema.peer == (None, None)
-    if pathlib_path:
-        home_dir = Path.home()
-    else:
-        home_dir = os.path.expanduser('~')
-    assert ema.config_file == os.path.join(home_dir, '.robot.ini')
-    assert ema.sock is None
+    assert ema.peer == ('127.0.0.2', 10005)
     assert ema.started is False
 
 
