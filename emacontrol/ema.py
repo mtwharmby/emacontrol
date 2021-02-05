@@ -1,3 +1,4 @@
+import configparser
 import os
 import re
 
@@ -16,21 +17,35 @@ default_config = os.path.join(os.path.expanduser('~'), '.robot.ini')
 
 class Robot(SocketConnector):
 
-    def __init__(self, config_file=default_config, robot_host=None,
-                 robot_port=None, socket_timeout=60):
-        super().__init__(robot_host, robot_port, config_file=config_file)
+    def __init__(self, config_file=default_config, socket_timeout=60):
+        host, port = self._read_config(config_file)
+        super().__init__(host, port)
         self.sample_index = 1
         self.started = False
 
-    def _read_config(self):
+    def _read_config(self, config_file):
         """
         Read the configuration for the socket from the configuration file given
         to the robot at initialisation. Currently only the hostname/IP address
         and the port are read from the config_file. See example_config.ini to
         see the structure of the config.
         """
-        # TODO This should be made robot specific!
-        super()._read_config()
+        # FIXME Make this non-robot specific
+        # TODO Log: 'Reading config file {}'.format(self.config_file)
+        if not os.path.exists(config_file):
+            raise(FileNotFoundError('Cannot find E.M.A. API config file: {}'
+                                    .format(config_file)))
+        confparse = configparser.ConfigParser()
+        confparse.read(config_file)
+
+        # Read values from config ensuring port is integer > 0
+        robot_host = confparse.get('robot', 'address')
+        robot_port = input_to_int(confparse.get('robot', 'port'))
+        if robot_port <= 0:
+            raise ValueError('Expecting value greater than 0')
+        return robot_host, robot_port
+        # TODO Log: 'Socket peer for this connection set to "{}:{}"'
+        # .format(*self.peer)
 
     def send(self, message, wait_for=None, parse=True):
         '''
